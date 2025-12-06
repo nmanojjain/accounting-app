@@ -1,122 +1,295 @@
+/* Main Container */
 .container {
     padding: 20px;
+    height: calc(100vh - 64px);
+    /* Full height minus header */
+    display: flex;
+    flex-direction: column;
+    background: var(--background);
 }
 
 .title {
-    font-size: 24px;
-    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
     color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
+/* Controls Section */
 .controls {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 1rem;
+    margin-bottom: 1rem;
     align-items: center;
     flex-wrap: wrap;
+    background: var(--card-bg);
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border);
 }
 
 .dateControls {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.25rem;
+    border-radius: 0.5rem;
 }
 
 .navBtn {
-    padding: 8px 12px;
-    background: #333;
-    color: white;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    color: #94a3b8;
     border: none;
-    border-radius: 4px;
+    border-radius: 0.25rem;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
 .navBtn:hover {
-    background: #444;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
 }
 
 .select,
 .input {
-    padding: 8px;
-    border: 1px solid #333;
-    background: #111;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border);
+    background: var(--background);
     color: white;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.select:focus,
+.input:focus {
+    border-color: #3b82f6;
+}
+
+/* Report Content Area */
+.reportContent {
+    flex: 1;
+    background: var(--card-bg);
+    border-radius: 0.75rem;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Important for internal scrolling */
+    position: relative;
+}
+
+/* Ledger Header (Sticky Top of Report) */
+.ledgerHeader {
+    padding: 1rem 1.5rem;
+    background: #1e293b;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.ledgerTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.ledgerPeriod {
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+/* Scrollable Table Container */
+.tableContainer {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
+
+    /* Custom Scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: #475569 transparent;
+}
+
+.tableContainer::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.tableContainer::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tableContainer::-webkit-scrollbar-thumb {
+    background-color: #475569;
     border-radius: 4px;
 }
 
-.reportContent {
-    background: var(--card-bg);
-    padding: 1.5rem;
-    border-radius: 0.75rem;
-    border: 1px solid var(--border);
-    overflow-x: auto;
-}
-
+/* Table Styling */
 .table {
     width: 100%;
-    border-collapse: collapse;
-    min-width: 800px;
-}
-
-.table th,
-.table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    color: white;
+    border-collapse: separate;
+    /* Allows sticky header to work better */
+    border-spacing: 0;
+    min-width: 900px;
 }
 
 .table th {
+    position: sticky;
+    top: 0;
+    background: #0f172a;
+    /* Darker header background */
     color: #94a3b8;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+    z-index: 5;
+    white-space: nowrap;
 }
 
-.openingRow,
-.closingRow {
-    background: rgba(255, 255, 255, 0.05);
-    font-weight: bold;
+.table td {
+    padding: 0.85rem 1rem;
+    color: #e2e8f0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.95rem;
+    vertical-align: top;
 }
 
-.deleteBtn {
-    padding: 0.3rem 0.6rem;
-    background: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+.table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Column Specifics */
+.colDate {
+    width: 120px;
+    white-space: nowrap;
+    color: #94a3b8;
+}
+
+.colParticulars {
+    min-width: 300px;
+}
+
+.colType {
+    width: 100px;
+    color: #94a3b8;
+}
+
+.colNo {
+    width: 80px;
+    color: #94a3b8;
+}
+
+.colAmount {
+    width: 120px;
+    text-align: right;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.colAction {
+    width: 80px;
+    text-align: center;
+}
+
+/* Align headers for amount columns */
+.table th:nth-child(5),
+.table th:nth-child(6),
+.table th:nth-child(7) {
+    text-align: right;
+}
+
+/* Opening/Closing Rows */
+.openingRow td,
+.closingRow td {
+    background: rgba(59, 130, 246, 0.1);
+    font-weight: 700;
+    color: #60a5fa;
+    border-top: 2px solid #3b82f6;
+    border-bottom: 2px solid #3b82f6;
 }
 
 .particularsMain {
     font-weight: 500;
-    color: white;
+    color: #f1f5f9;
+    margin-bottom: 0.25rem;
 }
 
 .particularsSub {
-    font-size: 0.85rem;
-    color: #94a3b8;
-    margin-top: 4px;
+    font-size: 0.8rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+.cancelledRow td {
+    opacity: 0.6;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.deleteBtn {
+    padding: 0.25rem 0.75rem;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.deleteBtn:hover {
+    background: #3b82f6;
+    color: white;
 }
 
 /* Mobile Optimized Table */
 @media (max-width: 768px) {
     .container {
         padding: 10px;
+        height: auto;
+        /* Allow scrolling on mobile */
     }
 
     .reportContent {
-        padding: 0.5rem;
-        overflow-x: hidden;
-        /* Prevent horizontal scroll */
+        height: auto;
+        overflow: visible;
+        background: transparent;
+        border: none;
+    }
+
+    .tableContainer {
+        overflow: visible;
+    }
+
+    .ledgerHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        background: var(--card-bg);
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border);
     }
 
     .table {
-        min-width: 100%;
         display: block;
+        min-width: 100%;
     }
 
     .table thead {
         display: none;
-        /* Hide headers on mobile */
     }
 
     .table tbody,
@@ -128,67 +301,82 @@
 
     .table tr {
         margin-bottom: 1rem;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 8px;
-        padding: 10px;
+        background: var(--card-bg);
+        border-radius: 0.75rem;
+        padding: 1rem;
         border: 1px solid var(--border);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
     .table td {
-        padding: 4px 0;
-        border-bottom: none;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         text-align: right;
-        /* Align values to right */
         position: relative;
         padding-left: 40%;
-        /* Space for label */
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
 
-    /* Add labels via pseudo-elements */
+    .table td:last-child {
+        border-bottom: none;
+    }
+
     .table td::before {
         content: attr(data-label);
         position: absolute;
         left: 0;
-        width: 40%;
+        width: 35%;
         text-align: left;
-        font-weight: bold;
+        font-weight: 600;
         color: #94a3b8;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        text-transform: uppercase;
     }
 
-    /* Specific adjustments for Particulars to take full width if needed */
+    /* Particulars Special Styling for Mobile */
     .table td:nth-child(2) {
-        /* Particulars column usually */
         text-align: left;
         padding-left: 0;
-        margin-top: 5px;
-        margin-bottom: 5px;
-        font-weight: bold;
-        font-size: 1.1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        padding-bottom: 8px;
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.75rem;
+        display: block;
     }
 
     .table td:nth-child(2)::before {
         display: none;
-        /* Hide 'Particulars' label as it's obvious */
     }
 
-    /* Date styling */
+    .particularsMain {
+        font-size: 1.1rem;
+        color: white;
+    }
+
+    /* Date Styling */
     .table td:first-child {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         color: #64748b;
-        padding-bottom: 0;
+        padding-top: 0;
+        margin-bottom: 0.5rem;
+        padding-left: 0;
+        display: block;
+        text-align: left;
     }
 
     .table td:first-child::before {
         display: none;
     }
 
-    /* Hide empty cells on mobile to save space */
+    /* Amount Styling */
+    .colAmount {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #e2e8f0;
+    }
+
+    /* Hide empty cells */
     .table td:empty {
         display: none;
     }

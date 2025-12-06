@@ -207,130 +207,146 @@ export default function ReportsPage() {
             </div>
 
             <div className={styles.reportContent}>
-                {loading ? <p>Loading...</p> : (
+                {loading ? <p style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>Loading...</p> : (
                     <>
-                        {reportType === 'daybook' && (
-                            <table className={styles.table}>
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Particulars</th>
-                                        <th>Vch Type</th>
-                                        <th>Vch No</th>
-                                        <th>Debit</th>
-                                        <th>Credit</th>
-                                        {userRole === 'admin' && <th>Action</th>}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.length === 0 ? (
-                                        <tr><td colSpan={userRole === 'admin' ? 7 : 6} style={{ textAlign: 'center' }}>No vouchers found.</td></tr>
-                                    ) : (
-                                        data.map(v => {
-                                            const entries = v.voucher_entries || [];
-                                            const isCancelled = entries.length === 0 || v.narration?.startsWith('CANCELLED:');
+                        {/* Ledger Header Section */}
+                        {reportType === 'ledger' && selectedLedger && (
+                            <div className={styles.ledgerHeader}>
+                                <div className={styles.ledgerTitle}>
+                                    {ledgers.find(l => l.id === selectedLedger)?.name || 'Ledger Account'}
+                                </div>
+                                <div className={styles.ledgerPeriod}>
+                                    {formatDate(fromDate)} to {formatDate(toDate)}
+                                </div>
+                            </div>
+                        )}
 
-                                            if (isCancelled) {
-                                                return (
-                                                    <tr key={v.id} className={styles.cancelledRow}>
-                                                        <td data-label="Date">{formatDate(v.date)}</td>
-                                                        <td data-label="Particulars" style={{ color: '#e74c3c', fontStyle: 'italic' }}>
-                                                            {v.narration || 'CANCELLED'}
-                                                        </td>
-                                                        <td data-label="Type">{v.voucher_type}</td>
-                                                        <td data-label="No">{v.voucher_number || '-'}</td>
-                                                        <td data-label="Debit">-</td>
-                                                        <td data-label="Credit">-</td>
-                                                        {userRole === 'admin' && <td data-label="Action">Cancelled</td>}
-                                                    </tr>
-                                                );
-                                            }
+                        {/* Scrollable Table Container */}
+                        <div className={styles.tableContainer}>
+                            {reportType === 'daybook' && (
+                                <table className={styles.table}>
+                                    <thead>
+                                        <tr>
+                                            <th className={styles.colDate}>Date</th>
+                                            <th className={styles.colParticulars}>Particulars</th>
+                                            <th className={styles.colType}>Vch Type</th>
+                                            <th className={styles.colNo}>Vch No</th>
+                                            <th className={styles.colAmount}>Debit</th>
+                                            <th className={styles.colAmount}>Credit</th>
+                                            {userRole === 'admin' && <th className={styles.colAction}>Action</th>}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {data.length === 0 ? (
+                                            <tr><td colSpan={userRole === 'admin' ? 7 : 6} style={{ textAlign: 'center', padding: '2rem' }}>No vouchers found.</td></tr>
+                                        ) : (
+                                            data.map(v => {
+                                                const entries = v.voucher_entries || [];
+                                                const isCancelled = entries.length === 0 || v.narration?.startsWith('CANCELLED:');
 
-                                            // Sort entries: Debits first, then Credits
-                                            entries.sort((a, b) => (Number(b.debit || 0) - Number(a.debit || 0)));
-
-                                            return entries.map((entry, index) => {
-                                                const isDebit = Number(entry.debit) > 0;
-                                                const isCredit = Number(entry.credit) > 0;
-
-                                                // Only show Date, Type, No, Action on the FIRST row of the voucher
-                                                const isFirst = index === 0;
-
-                                                return (
-                                                    <tr key={`${v.id}-${index}`} className={isFirst ? styles.voucherStartRow : ''}>
-                                                        <td data-label="Date">{isFirst ? formatDate(v.date) : ''}</td>
-                                                        <td data-label="Particulars">
-                                                            <div className={styles.particularsMain}>
-                                                                {isCredit ? 'To ' : ''}{entry.ledger?.name}
-                                                            </div>
-                                                            {isFirst && <div className={styles.particularsSub}>{v.narration}</div>}
-                                                        </td>
-                                                        <td data-label="Type">{isFirst ? v.voucher_type : ''}</td>
-                                                        <td data-label="No">{isFirst ? (v.voucher_number || '-') : ''}</td>
-                                                        <td data-label="Debit">{isDebit ? Number(entry.debit).toFixed(2) : ''}</td>
-                                                        <td data-label="Credit">{isCredit ? Number(entry.credit).toFixed(2) : ''}</td>
-                                                        {userRole === 'admin' && (
-                                                            <td data-label="Action">
-                                                                {isFirst && (
-                                                                    <button
-                                                                        onClick={() => setEditingVoucher(v)}
-                                                                        className={styles.deleteBtn}
-                                                                        style={{ backgroundColor: '#3498db' }}
-                                                                    >
-                                                                        Edit
-                                                                    </button>
-                                                                )}
+                                                if (isCancelled) {
+                                                    return (
+                                                        <tr key={v.id} className={styles.cancelledRow}>
+                                                            <td data-label="Date">{formatDate(v.date)}</td>
+                                                            <td data-label="Particulars" style={{ color: '#e74c3c', fontStyle: 'italic' }}>
+                                                                {v.narration || 'CANCELLED'}
                                                             </td>
-                                                        )}
-                                                    </tr>
-                                                );
-                                            });
-                                        })
-                                    )}
-                                </tbody>
-                            </table>
-                        )}
+                                                            <td data-label="Type">{v.voucher_type}</td>
+                                                            <td data-label="No">{v.voucher_number || '-'}</td>
+                                                            <td data-label="Debit">-</td>
+                                                            <td data-label="Credit">-</td>
+                                                            {userRole === 'admin' && <td data-label="Action">Cancelled</td>}
+                                                        </tr>
+                                                    );
+                                                }
 
-                        {reportType === 'ledger' && (
-                            <table className={styles.table}>
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Particulars</th>
-                                        <th>Vch Type</th>
-                                        <th>Vch No</th>
-                                        <th>Debit</th>
-                                        <th>Credit</th>
-                                        <th>Balance</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr className={styles.openingRow}>
-                                        <td colSpan="6">Opening Balance</td>
-                                        <td data-label="Balance">{(openingBalance || 0).toFixed(2)}</td>
-                                    </tr>
-                                    {data.length === 0 ? (
-                                        <tr><td colSpan="7" style={{ textAlign: 'center' }}>No transactions in this period.</td></tr>
-                                    ) : (
-                                        data.map((entry, index) => (
-                                            <tr key={index}>
-                                                <td data-label="Date">{formatDate(entry.voucher?.date)}</td>
-                                                <td data-label="Particulars">{entry.particulars}</td>
-                                                <td data-label="Type">{entry.voucher?.voucher_type || '-'}</td>
-                                                <td data-label="No">{entry.voucher?.voucher_number || '-'}</td>
-                                                <td data-label="Debit">{entry.debit > 0 ? Number(entry.debit).toFixed(2) : ''}</td>
-                                                <td data-label="Credit">{entry.credit > 0 ? Number(entry.credit).toFixed(2) : ''}</td>
-                                                <td data-label="Balance">{(entry.balance || 0).toFixed(2)}</td>
-                                            </tr>
-                                        ))
-                                    )}
-                                    <tr className={styles.closingRow}>
-                                        <td colSpan="6">Closing Balance</td>
-                                        <td data-label="Balance">{data.length > 0 ? (data[data.length - 1].balance || 0).toFixed(2) : (openingBalance || 0).toFixed(2)}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        )}
+                                                // Sort entries: Debits first, then Credits
+                                                entries.sort((a, b) => (Number(b.debit || 0) - Number(a.debit || 0)));
+
+                                                return entries.map((entry, index) => {
+                                                    const isDebit = Number(entry.debit) > 0;
+                                                    const isCredit = Number(entry.credit) > 0;
+
+                                                    // Only show Date, Type, No, Action on the FIRST row of the voucher
+                                                    const isFirst = index === 0;
+
+                                                    return (
+                                                        <tr key={`${v.id}-${index}`} className={isFirst ? styles.voucherStartRow : ''}>
+                                                            <td className={styles.colDate} data-label="Date">{isFirst ? formatDate(v.date) : ''}</td>
+                                                            <td className={styles.colParticulars} data-label="Particulars">
+                                                                <div className={styles.particularsMain}>
+                                                                    {isCredit ? 'To ' : ''}{entry.ledger?.name}
+                                                                </div>
+                                                                {isFirst && <div className={styles.particularsSub}>{v.narration}</div>}
+                                                            </td>
+                                                            <td className={styles.colType} data-label="Type">{isFirst ? v.voucher_type : ''}</td>
+                                                            <td className={styles.colNo} data-label="No">{isFirst ? (v.voucher_number || '-') : ''}</td>
+                                                            <td className={styles.colAmount} data-label="Debit">{isDebit ? Number(entry.debit).toFixed(2) : ''}</td>
+                                                            <td className={styles.colAmount} data-label="Credit">{isCredit ? Number(entry.credit).toFixed(2) : ''}</td>
+                                                            {userRole === 'admin' && (
+                                                                <td className={styles.colAction} data-label="Action">
+                                                                    {isFirst && (
+                                                                        <button
+                                                                            onClick={() => setEditingVoucher(v)}
+                                                                            className={styles.deleteBtn}
+                                                                        >
+                                                                            Edit
+                                                                        </button>
+                                                                    )}
+                                                                </td>
+                                                            )}
+                                                        </tr>
+                                                    );
+                                                });
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+                            )}
+
+                            {reportType === 'ledger' && (
+                                <table className={styles.table}>
+                                    <thead>
+                                        <tr>
+                                            <th className={styles.colDate}>Date</th>
+                                            <th className={styles.colParticulars}>Particulars</th>
+                                            <th className={styles.colType}>Vch Type</th>
+                                            <th className={styles.colNo}>Vch No</th>
+                                            <th className={styles.colAmount}>Debit</th>
+                                            <th className={styles.colAmount}>Credit</th>
+                                            <th className={styles.colAmount}>Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr className={styles.openingRow}>
+                                            <td colSpan="6">Opening Balance</td>
+                                            <td className={styles.colAmount} data-label="Balance">{(openingBalance || 0).toFixed(2)}</td>
+                                        </tr>
+                                        {data.length === 0 ? (
+                                            <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>No transactions in this period.</td></tr>
+                                        ) : (
+                                            data.map((entry, index) => (
+                                                <tr key={index}>
+                                                    <td className={styles.colDate} data-label="Date">{formatDate(entry.voucher?.date)}</td>
+                                                    <td className={styles.colParticulars} data-label="Particulars">
+                                                        <div className={styles.particularsMain}>{entry.particulars}</div>
+                                                    </td>
+                                                    <td className={styles.colType} data-label="Type">{entry.voucher?.voucher_type || '-'}</td>
+                                                    <td className={styles.colNo} data-label="No">{entry.voucher?.voucher_number || '-'}</td>
+                                                    <td className={styles.colAmount} data-label="Debit">{entry.debit > 0 ? Number(entry.debit).toFixed(2) : ''}</td>
+                                                    <td className={styles.colAmount} data-label="Credit">{entry.credit > 0 ? Number(entry.credit).toFixed(2) : ''}</td>
+                                                    <td className={styles.colAmount} data-label="Balance">{(entry.balance || 0).toFixed(2)}</td>
+                                                </tr>
+                                            ))
+                                        )}
+                                        <tr className={styles.closingRow}>
+                                            <td colSpan="6">Closing Balance</td>
+                                            <td className={styles.colAmount} data-label="Balance">{data.length > 0 ? (data[data.length - 1].balance || 0).toFixed(2) : (openingBalance || 0).toFixed(2)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
                     </>
                 )}
             </div>
