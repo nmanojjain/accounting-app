@@ -1,5 +1,4 @@
 'use client';
-'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -234,15 +233,15 @@ export default function ReportsPage() {
                                             if (isCancelled) {
                                                 return (
                                                     <tr key={v.id} className={styles.cancelledRow}>
-                                                        <td>{formatDate(v.date)}</td>
-                                                        <td style={{ color: '#e74c3c', fontStyle: 'italic' }}>
+                                                        <td data-label="Date">{formatDate(v.date)}</td>
+                                                        <td data-label="Particulars" style={{ color: '#e74c3c', fontStyle: 'italic' }}>
                                                             {v.narration || 'CANCELLED'}
                                                         </td>
-                                                        <td>{v.voucher_type}</td>
-                                                        <td>{v.voucher_number || '-'}</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        {userRole === 'admin' && <td>Cancelled</td>}
+                                                        <td data-label="Type">{v.voucher_type}</td>
+                                                        <td data-label="No">{v.voucher_number || '-'}</td>
+                                                        <td data-label="Debit">-</td>
+                                                        <td data-label="Credit">-</td>
+                                                        {userRole === 'admin' && <td data-label="Action">Cancelled</td>}
                                                     </tr>
                                                 );
                                             }
@@ -259,19 +258,19 @@ export default function ReportsPage() {
 
                                                 return (
                                                     <tr key={`${v.id}-${index}`} className={isFirst ? styles.voucherStartRow : ''}>
-                                                        <td>{isFirst ? formatDate(v.date) : ''}</td>
-                                                        <td>
+                                                        <td data-label="Date">{isFirst ? formatDate(v.date) : ''}</td>
+                                                        <td data-label="Particulars">
                                                             <div className={styles.particularsMain}>
                                                                 {isCredit ? 'To ' : ''}{entry.ledger?.name}
                                                             </div>
                                                             {isFirst && <div className={styles.particularsSub}>{v.narration}</div>}
                                                         </td>
-                                                        <td>{isFirst ? v.voucher_type : ''}</td>
-                                                        <td>{isFirst ? (v.voucher_number || '-') : ''}</td>
-                                                        <td>{isDebit ? Number(entry.debit).toFixed(2) : ''}</td>
-                                                        <td>{isCredit ? Number(entry.credit).toFixed(2) : ''}</td>
+                                                        <td data-label="Type">{isFirst ? v.voucher_type : ''}</td>
+                                                        <td data-label="No">{isFirst ? (v.voucher_number || '-') : ''}</td>
+                                                        <td data-label="Debit">{isDebit ? Number(entry.debit).toFixed(2) : ''}</td>
+                                                        <td data-label="Credit">{isCredit ? Number(entry.credit).toFixed(2) : ''}</td>
                                                         {userRole === 'admin' && (
-                                                            <td>
+                                                            <td data-label="Action">
                                                                 {isFirst && (
                                                                     <button
                                                                         onClick={() => setEditingVoucher(v)}
@@ -308,34 +307,33 @@ export default function ReportsPage() {
                                 <tbody>
                                     <tr className={styles.openingRow}>
                                         <td colSpan="6">Opening Balance</td>
-                                        <td>{(openingBalance || 0).toFixed(2)}</td>
+                                        <td data-label="Balance">{(openingBalance || 0).toFixed(2)}</td>
                                     </tr>
                                     {data.length === 0 ? (
                                         <tr><td colSpan="7" style={{ textAlign: 'center' }}>No transactions in this period.</td></tr>
                                     ) : (
                                         data.map((entry, index) => (
                                             <tr key={index}>
-                                                <td>{formatDate(entry.voucher?.date)}</td>
-                                                <td>{entry.particulars}</td>
-                                                <td>{entry.voucher?.voucher_type || '-'}</td>
-                                                <td>{entry.voucher?.voucher_number || '-'}</td>
-                                                <td>{entry.debit > 0 ? Number(entry.debit).toFixed(2) : ''}</td>
-                                                <td>{entry.credit > 0 ? Number(entry.credit).toFixed(2) : ''}</td>
-                                                <td>{(entry.balance || 0).toFixed(2)}</td>
+                                                <td data-label="Date">{formatDate(entry.voucher?.date)}</td>
+                                                <td data-label="Particulars">{entry.particulars}</td>
+                                                <td data-label="Type">{entry.voucher?.voucher_type || '-'}</td>
+                                                <td data-label="No">{entry.voucher?.voucher_number || '-'}</td>
+                                                <td data-label="Debit">{entry.debit > 0 ? Number(entry.debit).toFixed(2) : ''}</td>
+                                                <td data-label="Credit">{entry.credit > 0 ? Number(entry.credit).toFixed(2) : ''}</td>
+                                                <td data-label="Balance">{(entry.balance || 0).toFixed(2)}</td>
                                             </tr>
                                         ))
                                     )}
                                     <tr className={styles.closingRow}>
                                         <td colSpan="6">Closing Balance</td>
-                                        <td>{data.length > 0 ? (data[data.length - 1].balance || 0).toFixed(2) : (openingBalance || 0).toFixed(2)}</td>
+                                        <td data-label="Balance">{data.length > 0 ? (data[data.length - 1].balance || 0).toFixed(2) : (openingBalance || 0).toFixed(2)}</td>
                                     </tr>
                                 </tbody>
                             </table>
                         )}
                     </>
-                )
-                }
-            </div >
+                )}
+            </div>
 
             {editingVoucher && (
                 <EditVoucherModal
@@ -348,6 +346,6 @@ export default function ReportsPage() {
                     }}
                 />
             )}
-        </div >
+        </div>
     );
 }

@@ -96,3 +96,100 @@
     color: #94a3b8;
     margin-top: 4px;
 }
+
+/* Mobile Optimized Table */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
+    .reportContent {
+        padding: 0.5rem;
+        overflow-x: hidden;
+        /* Prevent horizontal scroll */
+    }
+
+    .table {
+        min-width: 100%;
+        display: block;
+    }
+
+    .table thead {
+        display: none;
+        /* Hide headers on mobile */
+    }
+
+    .table tbody,
+    .table tr,
+    .table td {
+        display: block;
+        width: 100%;
+    }
+
+    .table tr {
+        margin-bottom: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid var(--border);
+    }
+
+    .table td {
+        padding: 4px 0;
+        border-bottom: none;
+        text-align: right;
+        /* Align values to right */
+        position: relative;
+        padding-left: 40%;
+        /* Space for label */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Add labels via pseudo-elements */
+    .table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 40%;
+        text-align: left;
+        font-weight: bold;
+        color: #94a3b8;
+        font-size: 0.85rem;
+    }
+
+    /* Specific adjustments for Particulars to take full width if needed */
+    .table td:nth-child(2) {
+        /* Particulars column usually */
+        text-align: left;
+        padding-left: 0;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 1.1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 8px;
+    }
+
+    .table td:nth-child(2)::before {
+        display: none;
+        /* Hide 'Particulars' label as it's obvious */
+    }
+
+    /* Date styling */
+    .table td:first-child {
+        font-size: 0.8rem;
+        color: #64748b;
+        padding-bottom: 0;
+    }
+
+    .table td:first-child::before {
+        display: none;
+    }
+
+    /* Hide empty cells on mobile to save space */
+    .table td:empty {
+        display: none;
+    }
+}
