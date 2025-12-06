@@ -1,286 +1,239 @@
 /* Main Container */
 .container {
-    padding: 20px;
+    padding: 1rem;
     height: calc(100vh - 64px);
-    /* Full height minus header */
     display: flex;
     flex-direction: column;
-    background: var(--background);
+    background: #f1f5f9;
+    /* Light grey background like the image */
+    font-family: 'Inter', sans-serif;
 }
 
 .title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 1rem;
-    color: white;
+    color: #1e293b;
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-/* Controls Section */
+/* Date Slider */
+.dateSlider {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    scrollbar-width: none;
+    /* Hide scrollbar */
+}
+
+.dateSlider::-webkit-scrollbar {
+    display: none;
+}
+
+.dateCard {
+    background: white;
+    min-width: 60px;
+    padding: 0.75rem 0.5rem;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dateCard.active {
+    background: #1e3a8a;
+    /* Deep Blue */
+    color: white;
+    box-shadow: 0 4px 10px rgba(30, 58, 138, 0.3);
+}
+
+.dateCardMonth {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.dateCardDay {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+/* Summary Cards Grid */
+.summaryGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.summaryCard {
+    background: #1e3a8a;
+    /* Deep Blue */
+    color: white;
+    padding: 1.25rem;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(30, 58, 138, 0.2);
+    min-height: 100px;
+}
+
+.summaryValue {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.summaryLabel {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.summaryCard.highlight {
+    background: #2563eb;
+    /* Lighter Blue */
+}
+
+/* Controls (Legacy - kept for Ledger view but styled) */
 .controls {
     display: flex;
     gap: 1rem;
     margin-bottom: 1rem;
     align-items: center;
     flex-wrap: wrap;
-    background: var(--card-bg);
-    padding: 1rem;
-    border-radius: 0.75rem;
-    border: 1px solid var(--border);
+    background: white;
+    padding: 0.75rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
 }
 
-.dateControls {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 0.25rem;
-    border-radius: 0.5rem;
-}
-
-.navBtn {
-    padding: 0.5rem 0.75rem;
-    background: transparent;
-    color: #94a3b8;
-    border: none;
-    border-radius: 0.25rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.navBtn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-.select,
-.input {
-    padding: 0.6rem 1rem;
-    border: 1px solid var(--border);
-    background: var(--background);
-    color: white;
-    border-radius: 0.5rem;
+.select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #cbd5e1;
+    background: white;
+    color: #334155;
+    border-radius: 8px;
     font-size: 0.9rem;
     outline: none;
-    transition: border-color 0.2s;
-}
-
-.select:focus,
-.input:focus {
-    border-color: #3b82f6;
 }
 
 /* Report Content Area */
 .reportContent {
     flex: 1;
-    background: var(--card-bg);
-    border-radius: 0.75rem;
-    border: 1px solid var(--border);
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    /* Important for internal scrolling */
     position: relative;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-/* Ledger Header (Sticky Top of Report) */
+/* Ledger Header */
 .ledgerHeader {
-    padding: 1rem 1.5rem;
-    background: #1e293b;
-    border-bottom: 1px solid var(--border);
+    padding: 1.25rem;
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 10;
 }
 
 .ledgerTitle {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: #3b82f6;
+    color: #1e293b;
 }
 
 .ledgerPeriod {
     font-size: 0.9rem;
-    color: #94a3b8;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
 }
 
-/* Scrollable Table Container */
+/* Table Container */
 .tableContainer {
     flex: 1;
     overflow-y: auto;
     overflow-x: auto;
-    position: relative;
-
-    /* Custom Scrollbar */
     scrollbar-width: thin;
-    scrollbar-color: #475569 transparent;
-}
-
-.tableContainer::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-.tableContainer::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.tableContainer::-webkit-scrollbar-thumb {
-    background-color: #475569;
-    border-radius: 4px;
 }
 
 /* Table Styling */
 .table {
     width: 100%;
     border-collapse: separate;
-    /* Allows sticky header to work better */
     border-spacing: 0;
-    min-width: 900px;
+    min-width: 800px;
 }
 
 .table th {
     position: sticky;
     top: 0;
-    background: #0f172a;
-    /* Darker header background */
-    color: #94a3b8;
+    background: #f8fafc;
+    color: #64748b;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     padding: 1rem;
     text-align: left;
-    border-bottom: 2px solid var(--border);
+    border-bottom: 1px solid #e2e8f0;
     z-index: 5;
-    white-space: nowrap;
 }
 
 .table td {
-    padding: 0.85rem 1rem;
-    color: #e2e8f0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
     font-size: 0.95rem;
     vertical-align: top;
 }
 
-.table tr:hover td {
-    background: rgba(255, 255, 255, 0.02);
-}
-
-/* Column Specifics */
-.colDate {
-    width: 120px;
-    white-space: nowrap;
-    color: #94a3b8;
-}
-
-.colParticulars {
-    min-width: 300px;
-}
-
-.colType {
-    width: 100px;
-    color: #94a3b8;
-}
-
-.colNo {
-    width: 80px;
-    color: #94a3b8;
+.table tr:last-child td {
+    border-bottom: none;
 }
 
 .colAmount {
-    width: 120px;
     text-align: right;
     font-family: 'Roboto Mono', monospace;
-}
-
-.colAction {
-    width: 80px;
-    text-align: center;
-}
-
-/* Align headers for amount columns */
-.table th:nth-child(5),
-.table th:nth-child(6),
-.table th:nth-child(7) {
-    text-align: right;
-}
-
-/* Opening/Closing Rows */
-.openingRow td,
-.closingRow td {
-    background: rgba(59, 130, 246, 0.1);
-    font-weight: 700;
-    color: #60a5fa;
-    border-top: 2px solid #3b82f6;
-    border-bottom: 2px solid #3b82f6;
-}
-
-.particularsMain {
     font-weight: 500;
-    color: #f1f5f9;
-    margin-bottom: 0.25rem;
 }
 
-.particularsSub {
-    font-size: 0.8rem;
-    color: #64748b;
-    font-style: italic;
-}
-
-.cancelledRow td {
-    opacity: 0.6;
-    background: rgba(239, 68, 68, 0.05);
-}
-
-.deleteBtn {
-    padding: 0.25rem 0.75rem;
-    background: rgba(59, 130, 246, 0.1);
-    color: #3b82f6;
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.75rem;
-    font-weight: 600;
-    transition: all 0.2s;
-}
-
-.deleteBtn:hover {
-    background: #3b82f6;
-    color: white;
-}
-
-/* Mobile Optimized Table */
+/* Mobile Optimization */
 @media (max-width: 768px) {
     .container {
-        padding: 10px;
-        height: auto;
-        /* Allow scrolling on mobile */
+        padding: 0.75rem;
+        background: #f8fafc;
     }
 
     .reportContent {
-        height: auto;
-        overflow: visible;
         background: transparent;
         border: none;
+        box-shadow: none;
+        overflow: visible;
     }
 
     .tableContainer {
         overflow: visible;
-    }
-
-    .ledgerHeader {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-        background: var(--card-bg);
-        border-radius: 0.75rem;
-        margin-bottom: 1rem;
-        border: 1px solid var(--border);
     }
 
     .table {
@@ -300,48 +253,44 @@
     }
 
     .table tr {
-        margin-bottom: 1rem;
-        background: var(--card-bg);
-        border-radius: 0.75rem;
+        background: white;
+        margin-bottom: 0.75rem;
+        border-radius: 12px;
         padding: 1rem;
-        border: 1px solid var(--border);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
     }
 
     .table td {
-        padding: 0.5rem 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        text-align: right;
-        position: relative;
-        padding-left: 40%;
+        padding: 0.25rem 0;
+        border: none;
         display: flex;
         justify-content: space-between;
         align-items: center;
-    }
-
-    .table td:last-child {
-        border-bottom: none;
+        text-align: right;
     }
 
     .table td::before {
         content: attr(data-label);
-        position: absolute;
-        left: 0;
-        width: 35%;
-        text-align: left;
         font-weight: 600;
         color: #94a3b8;
-        font-size: 0.8rem;
-        text-transform: uppercase;
+        font-size: 0.85rem;
+        text-align: left;
     }
 
-    /* Particulars Special Styling for Mobile */
+    /* Special Layout for Mobile Rows to look like the image list */
     .table td:nth-child(2) {
+        /* Particulars */
+        order: -1;
+        /* Move to top */
+        width: 100%;
         text-align: left;
-        padding-left: 0;
-        margin-bottom: 0.75rem;
-        border-bottom: 1px solid var(--border);
-        padding-bottom: 0.75rem;
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #f1f5f9;
         display: block;
     }
 
@@ -349,35 +298,14 @@
         display: none;
     }
 
-    .particularsMain {
-        font-size: 1.1rem;
-        color: white;
-    }
-
-    /* Date Styling */
     .table td:first-child {
-        font-size: 0.85rem;
-        color: #64748b;
-        padding-top: 0;
-        margin-bottom: 0.5rem;
-        padding-left: 0;
-        display: block;
-        text-align: left;
-    }
-
-    .table td:first-child::before {
+        /* Date */
         display: none;
+        /* Hide date in individual cards if we have the slider */
     }
 
-    /* Amount Styling */
     .colAmount {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #e2e8f0;
-    }
-
-    /* Hide empty cells */
-    .table td:empty {
-        display: none;
+        font-size: 1rem;
+        color: #1e293b;
     }
 }

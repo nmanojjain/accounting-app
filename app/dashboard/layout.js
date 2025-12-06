@@ -48,24 +48,32 @@ export default function DashboardLayout({ children }) {
             />
 
             <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.open : ''}`}>
-                <div className={styles.logo}>Accounting App</div>
+                {/* Profile Section */}
+                <div className={styles.profileSection}>
+                    <div className={styles.avatar}>
+                        {user?.email?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <div className={styles.companyName}>My Company</div>
+                    <button className={styles.profileBtn}>Profile & Settings</button>
+                </div>
+
                 <nav className={styles.nav} onClick={() => setIsMobileMenuOpen(false)}>
-                    <Link href="/dashboard" className={styles.navItem}>Overview</Link>
+                    <Link href="/dashboard" className={styles.navItem}>📊 Overview</Link>
+                    <Link href="/dashboard/reports" className={styles.navItem}>📅 Day Book</Link>
 
                     {role === 'admin' && (
                         <>
-                            <Link href="/dashboard/companies" className={styles.navItem}>Companies</Link>
-                            <Link href="/dashboard/users" className={styles.navItem}>Users</Link>
-                            <Link href="/dashboard/access" className={styles.navItem}>Access Control</Link>
-                            <Link href="/dashboard/banking" className={styles.navItem}>Banking & Cash</Link>
+                            <Link href="/dashboard/companies" className={styles.navItem}>🏢 Companies</Link>
+                            <Link href="/dashboard/users" className={styles.navItem}>👥 Users</Link>
+                            <Link href="/dashboard/access" className={styles.navItem}>🔒 Access Control</Link>
+                            <Link href="/dashboard/banking" className={styles.navItem}>🏦 Banking & Cash</Link>
                         </>
                     )}
 
-                    <Link href="/dashboard/ledgers" className={styles.navItem}>Create New Party/Ledger</Link>
-                    <Link href="/dashboard/reports" className={styles.navItem}>Reports</Link>
+                    <Link href="/dashboard/ledgers" className={styles.navItem}>📝 Create Ledger</Link>
                 </nav>
                 <div className={styles.footer}>
-                    <button onClick={handleLogout} className={styles.logoutBtn}>Logout</button>
+                    <button onClick={handleLogout} className={styles.logoutBtn}>🚪 Logout</button>
                 </div>
             </aside>
             <main className={styles.main}>

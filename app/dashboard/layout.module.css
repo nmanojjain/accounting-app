@@ -1,95 +1,165 @@
 .layout {
     display: flex;
-    min-height: 100vh;
-    background: var(--background);
+    height: 100vh;
+    background-color: #f8fafc;
+    /* Light grey background for main content */
+    font-family: 'Inter', sans-serif;
 }
 
 .sidebar {
-    width: 250px;
-    background: var(--card-bg);
-    border-right: 1px solid var(--border);
+    width: 280px;
+    background-color: white;
+    color: #1e293b;
     display: flex;
     flex-direction: column;
-    padding: 1.5rem;
+    border-right: 1px solid #e2e8f0;
     transition: transform 0.3s ease-in-out;
     z-index: 50;
 }
 
-.logo {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
+/* Profile Section in Sidebar */
+.profileSection {
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border-bottom: 1px solid #f1f5f9;
 }
 
+.avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+    border: 3px solid white;
+    outline: 2px solid #3b82f6;
+}
+
+.companyName {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.profileBtn {
+    background: #1e3a8a;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.25rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
+    transition: transform 0.1s;
+}
+
+.profileBtn:active {
+    transform: scale(0.98);
+}
+
+/* Navigation */
 .nav {
+    flex: 1;
+    padding: 1.5rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    flex: 1;
+    overflow-y: auto;
 }
 
 .navItem {
+    display: flex;
+    align-items: center;
     padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    color: #94a3b8;
+    color: #475569;
+    text-decoration: none;
+    border-radius: 8px;
     transition: all 0.2s;
+    font-weight: 500;
+    font-size: 0.95rem;
 }
 
 .navItem:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: white;
+    background-color: #f1f5f9;
+    color: #1e3a8a;
 }
 
+.navItem.active {
+    background-color: #eff6ff;
+    color: #1e3a8a;
+    font-weight: 600;
+}
+
+/* Icons (using emojis or pseudo-elements for now) */
+.navItem::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.7;
+}
+
+/* Footer */
 .footer {
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
+    padding: 1.5rem;
+    border-top: 1px solid #f1f5f9;
 }
 
 .logoutBtn {
     width: 100%;
     padding: 0.75rem;
     background: transparent;
-    border: 1px solid var(--border);
-    color: #ef4444;
-    border-radius: 0.5rem;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .logoutBtn:hover {
-    background: rgba(239, 68, 68, 0.1);
+    background: #fef2f2;
+    color: #ef4444;
+    border-color: #fecaca;
 }
 
+/* Main Content */
 .main {
     flex: 1;
     display: flex;
     flex-direction: column;
-    width: 100%;
-    /* Ensure it takes full width */
-    overflow-x: hidden;
-    /* Prevent horizontal scroll on main */
+    overflow: hidden;
+    position: relative;
 }
 
 .header {
     height: 64px;
-    border-bottom: 1px solid var(--border);
+    background-color: white;
+    border-bottom: 1px solid #e2e8f0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 2rem;
-    background: var(--card-bg);
-}
-
-.mobileMenuBtn {
-    display: none;
-    /* Hidden on desktop */
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
+    padding: 0 1.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .headerLeft {
@@ -98,79 +168,63 @@
     gap: 1rem;
 }
 
-.companyTitle {
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.switchBtn {
-    font-size: 0.85rem;
-    color: #3b82f6;
-    text-decoration: none;
-    border: 1px solid #3b82f6;
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
-    transition: all 0.2s;
-}
-
-.switchBtn:hover {
-    background: rgba(59, 130, 246, 0.1);
+.mobileMenuBtn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #1e293b;
 }
 
 .userEmail {
-    color: #94a3b8;
-    font-size: 0.875rem;
+    font-weight: 500;
+    color: #64748b;
 }
 
 .content {
-    padding: 2rem;
     flex: 1;
     overflow-y: auto;
+    padding: 0;
+    /* Let pages handle padding */
 }
 
 /* Mobile Responsiveness */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 @media (max-width: 768px) {
     .sidebar {
         position: fixed;
         top: 0;
         left: 0;
         bottom: 0;
-        width: 250px;
         transform: translateX(-100%);
-        /* Hide by default */
+        width: 85%;
+        max-width: 300px;
+        box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
     }
 
     .sidebar.open {
         transform: translateX(0);
-        /* Slide in */
-        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
     }
 
     .mobileMenuBtn {
-        display: block;
-    }
-
-    .header {
-        padding: 0 1rem;
-    }
-
-    .content {
-        padding: 1rem;
-    }
-
-    /* Overlay when sidebar is open */
-    .overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 40;
-        display: none;
-    }
-
-    .overlay.visible {
         display: block;
     }
 }

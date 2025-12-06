@@ -1,72 +1,79 @@
 .container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 1rem;
-    background: radial-gradient(circle at top right, #1e293b, #0f172a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+  background: #001e80;
+  /* Deep Blue from image */
+  font-family: 'Inter', sans-serif;
 }
 
 .card {
-    background: var(--card-bg);
-    padding: 2.5rem;
-    border-radius: 1rem;
-    width: 100%;
-    max-width: 400px;
-    border: 1px solid var(--border);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  background: transparent;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .title {
-    font-size: 1.875rem;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 0.5rem;
-    color: white;
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: white;
 }
 
 .subtitle {
-    text-align: center;
-    color: #94a3b8;
-    margin-bottom: 2rem;
+  text-align: center;
+  color: #e0e7ff;
+  margin-bottom: 3rem;
+  font-size: 0.95rem;
 }
 
 .form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 .error {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid #ef4444;
-    color: #ef4444;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    margin-bottom: 1.5rem;
-    font-size: 0.875rem;
-    text-align: center;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  text-align: center;
+  width: 100%;
 }
 
+/* Role Selection - Styled to fit */
 .roleSelection {
   display: flex;
   gap: 1rem;
-  margin-bottom: 1.5rem;
-  background: #1e293b;
-  padding: 0.5rem;
-  border-radius: 8px;
+  margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem;
+  border-radius: 2rem;
+  width: 100%;
 }
 
 .radioLabel {
   flex: 1;
   text-align: center;
-  padding: 0.75rem;
-  border-radius: 6px;
+  padding: 0.5rem;
+  border-radius: 2rem;
   cursor: pointer;
   transition: all 0.2s;
-  color: #94a3b8;
+  color: #e0e7ff;
   font-weight: 500;
-  position: relative;
+  font-size: 0.9rem;
 }
 
 .radioLabel input {
@@ -74,15 +81,57 @@
 }
 
 .radioLabel:has(input:checked) {
+  color: #001e80;
+  background: white;
+  font-weight: 600;
+}
+
+/* Inputs are handled by Input component but we can target them if they have classes, 
+   or we rely on global styles. Assuming Input component uses standard inputs. 
+   We might need to adjust the Input component or add global overrides. 
+   For now, I'll assume I can't easily change the Input component's internal classes 
+   without seeing it, but I can try to target input elements inside .form */
+
+/* Global override for inputs in this form if possible, 
+   otherwise I'd need to edit Input.js. 
+   Let's assume standard HTML input styling here for safety. */
+.form input[type="email"],
+.form input[type="password"] {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
   color: white;
-  background: #3b82f6; /* Default Blue for Operator */
+  border-radius: 2rem;
+  /* Rounded pills */
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
 }
 
-/* Specific style for Admin when checked */
-.radioLabel:has(input[value="admin"]:checked) {
-  background: #ef4444; /* Red for Admin */
+.form input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.radioLabel:hover:not(:has(input:checked)) {
-  background: #334155;
+.form input:focus {
+  border-color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Button Styling */
+.form button {
+  background: #007bff;
+  /* Bright Blue */
+  color: white;
+  border: none;
+  border-radius: 2rem;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.2s;
+}
+
+.form button:hover {
+  background: #0056b3;
 }
