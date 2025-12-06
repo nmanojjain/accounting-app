@@ -1,0 +1,109 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+}
+
+.controls {
+    display: flex;
+    gap: 1rem;
+}
+
+.select {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--card-bg);
+    color: white;
+    border: 1px solid var(--border);
+}
+
+.formCard {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+    max-width: 500px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.selectGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.selectGroup label {
+    font-size: 0.875rem;
+    color: #cbd5e1;
+}
+
+.selectInput {
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--input-bg);
+    color: white;
+    font-size: 1rem;
+}
+
+.list {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.table th,
+.table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.table th {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.table td {
+    color: white;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.editBtn {
+    padding: 0.3rem 0.6rem;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+
+.deleteBtn {
+    padding: 0.3rem 0.6rem;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
