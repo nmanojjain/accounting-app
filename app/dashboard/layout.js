@@ -9,6 +9,7 @@ import styles from './layout.module.css';
 export default function DashboardLayout({ children }) {
     const [user, setUser] = useState(null);
     const [role, setRole] = useState(null); // 'admin' or 'operator'
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -40,9 +41,15 @@ export default function DashboardLayout({ children }) {
 
     return (
         <div className={styles.layout}>
-            <aside className={styles.sidebar}>
+            {/* Mobile Overlay */}
+            <div
+                className={`${styles.overlay} ${isMobileMenuOpen ? styles.visible : ''}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+            />
+
+            <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.open : ''}`}>
                 <div className={styles.logo}>Accounting App</div>
-                <nav className={styles.nav}>
+                <nav className={styles.nav} onClick={() => setIsMobileMenuOpen(false)}>
                     <Link href="/dashboard" className={styles.navItem}>Overview</Link>
 
                     {role === 'admin' && (
@@ -63,7 +70,15 @@ export default function DashboardLayout({ children }) {
             </aside>
             <main className={styles.main}>
                 <header className={styles.header}>
-                    <div className={styles.userEmail}>{user.email} ({role})</div>
+                    <div className={styles.headerLeft}>
+                        <button
+                            className={styles.mobileMenuBtn}
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        >
+                            ☰
+                        </button>
+                        <div className={styles.userEmail}>{user.email} ({role})</div>
+                    </div>
                 </header>
                 <div className={styles.content}>
                     {children}

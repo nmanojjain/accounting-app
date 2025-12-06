@@ -11,6 +11,8 @@
     display: flex;
     flex-direction: column;
     padding: 1.5rem;
+    transition: transform 0.3s ease-in-out;
+    z-index: 50;
 }
 
 .logo {
@@ -64,6 +66,10 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    /* Ensure it takes full width */
+    overflow-x: hidden;
+    /* Prevent horizontal scroll on main */
 }
 
 .header {
@@ -74,6 +80,16 @@
     justify-content: space-between;
     padding: 0 2rem;
     background: var(--card-bg);
+}
+
+.mobileMenuBtn {
+    display: none;
+    /* Hidden on desktop */
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
 }
 
 .headerLeft {
@@ -110,4 +126,51 @@
     padding: 2rem;
     flex: 1;
     overflow-y: auto;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 250px;
+        transform: translateX(-100%);
+        /* Hide by default */
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+        /* Slide in */
+        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .mobileMenuBtn {
+        display: block;
+    }
+
+    .header {
+        padding: 0 1rem;
+    }
+
+    .content {
+        padding: 1rem;
+    }
+
+    /* Overlay when sidebar is open */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 40;
+        display: none;
+    }
+
+    .overlay.visible {
+        display: block;
+    }
 }
