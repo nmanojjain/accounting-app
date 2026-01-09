@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
@@ -8,10 +9,13 @@ import { deleteLedger, createLedger, updateLedger, getAccessibleCompanies } from
 import styles from './page.module.css';
 
 export default function LedgersPage() {
+    const params = useParams();
+    const searchParams = useSearchParams();
+    const router = useRouter();
     const [ledgers, setLedgers] = useState([]);
     const [companies, setCompanies] = useState([]);
     const [operators, setOperators] = useState([]);
-    const [selectedCompany, setSelectedCompany] = useState('');
+    const [selectedCompany, setSelectedCompany] = useState(params?.companyId || searchParams.get('companyId') || '');
     const [showForm, setShowForm] = useState(false);
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
@@ -41,7 +45,9 @@ export default function LedgersPage() {
         const data = await getAccessibleCompanies();
         if (data && data.length > 0) {
             setCompanies(data);
-            setSelectedCompany(data[0].id);
+            if (!selectedCompany) {
+                setSelectedCompany(data[0].id);
+            }
         }
         setLoading(false);
     };
@@ -121,15 +127,22 @@ export default function LedgersPage() {
     return (
         <div>
             <div className={styles.header}>
-                <h1 className={styles.title}>Ledgers</h1>
+                <h1 className={styles.title}>Ledger's List</h1>
                 <div className={styles.controls}>
-                    <select
-                        value={selectedCompany}
-                        onChange={(e) => setSelectedCompany(e.target.value)}
-                        className={styles.select}
-                    >
-                        {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
+                    {!(params?.companyId || searchParams.get('companyId')) && (
+                        <select
+                            value={selectedCompany}
+                            onChange={(e) => setSelectedCompany(e.target.value)}
+                            className={styles.select}
+                        >
+                            {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                    )}
+                    {selectedCompany && (
+                        <Button onClick={() => router.push(`/dashboard/c/${selectedCompany}`)} variant="secondary">
+                            ← Exit to Workspace
+                        </Button>
+                    )}
                     <Button onClick={() => { setShowForm(!showForm); setEditingId(null); }}>
                         {showForm ? 'Cancel' : 'New Ledger'}
                     </Button>
@@ -218,12 +231,12 @@ export default function LedgersPage() {
                         <tbody>
                             {ledgers.map(ledger => (
                                 <tr key={ledger.id}>
-                                    <td>{ledger.name}</td>
-                                    <td>{ledger.group_name}</td>
-                                    <td>{ledger.assigned_operator_id ? 'Yes' : '-'}</td>
-                                    <td>{ledger.current_balance}</td>
+                                    <td data-label="Name">{ledger.name}</td>
+                                    <td data-label="Group">{ledger.group_name}</td>
+                                    <td data-label="Operator">{ledger.assigned_operator_id ? 'Yes' : '-'}</td>
+                                    <td data-label="Balance">{ledger.current_balance}</td>
                                     {userRole === 'admin' && (
-                                        <td>
+                                        <td data-label="Actions">
                                             <button onClick={() => handleEdit(ledger)} className={styles.editBtn}>Edit</button>
                                             <button onClick={() => handleDelete(ledger.id)} className={styles.deleteBtn}>Delete</button>
                                         </td>

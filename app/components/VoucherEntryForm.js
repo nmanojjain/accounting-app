@@ -1,112 +1,55 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { createVoucher, getAccessibleCompanies, getLedgers, createLedger, getNextVoucherNumber } from '@/app/actions';
-import styles from './page.module.css';
+import { createVoucher, getLedgers, createLedger, getNextVoucherNumber } from '@/app/actions';
+import { saveVoucherOffline } from '@/lib/syncManager';
+import styles from '@/app/dashboard/vouchers/page.module.css';
 
-function VouchersContent() {
-    const searchParams = useSearchParams();
-    const params = useParams();
-    const urlCompanyId = searchParams.get('companyId') || params?.companyId;
-    const urlType = searchParams.get('type');
-
-    const [companies, setCompanies] = useState([]);
+export default function VoucherEntryForm({ companyId, type, onExit, userToken }) {
     const [ledgers, setLedgers] = useState([]);
-    const [selectedCompany, setSelectedCompany] = useState(urlCompanyId || '');
     const [loading, setLoading] = useState(true);
-    const [userRole, setUserRole] = useState(null);
     const [userId, setUserId] = useState(null);
+    const [userRole, setUserRole] = useState(null);
     const [nextNo, setNextNo] = useState('...');
 
-    // Voucher State
-    const [voucherType, setVoucherType] = useState(urlType || 'receipt');
     const [voucherDate, setVoucherDate] = useState(new Date().toISOString().split('T')[0]);
     const [narration, setNarration] = useState('');
-
-    // Header Account (Searchable)
     const [headerLedgerId, setHeaderLedgerId] = useState('');
     const [headerLedgerSearch, setHeaderLedgerSearch] = useState('');
-
-    // Line Items (Searchable)
     const [rows, setRows] = useState([{ ledger_id: '', amount: '', search: '' }]);
-
-    // Create Ledger Modal State
     const [showCreateLedger, setShowCreateLedger] = useState(false);
     const [newLedgerName, setNewLedgerName] = useState('');
     const [newLedgerGroup, setNewLedgerGroup] = useState('Sundry Debtors');
 
     useEffect(() => {
+        const fetchUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                setUserId(user.id);
+                const { data } = await supabase.from('users').select('role').eq('id', user.id).single();
+                setUserRole(data?.role);
+            }
+        };
         fetchUser();
-        loadCompanies();
-    }, []);
-
-    useEffect(() => {
-        if (selectedCompany && voucherType) {
+        if (companyId) {
+            loadLedgers(companyId);
             updateNextNo();
         }
-    }, [selectedCompany, voucherType]);
+    }, [companyId, type]);
 
     const updateNextNo = async () => {
-        const no = await getNextVoucherNumber(selectedCompany, voucherType);
+        const no = await getNextVoucherNumber(companyId, type);
         setNextNo(no);
     };
 
-    const handleCreateLedger = async (e) => {
-        e.preventDefault();
-        const formData = new FormData();
-        formData.append('company_id', selectedCompany);
-        formData.append('name', newLedgerName);
-        formData.append('group_name', newLedgerGroup);
-        formData.append('opening_balance', 0);
-        formData.append('is_cash_ledger', false);
-
-        const result = await createLedger(formData);
-        if (result.success) {
-            setShowCreateLedger(false);
-            setNewLedgerName('');
-            loadLedgers(selectedCompany);
-        } else {
-            alert(result.error);
-        }
-    };
-
-    useEffect(() => {
-        if (urlCompanyId) setSelectedCompany(urlCompanyId);
-        if (urlType) setVoucherType(urlType);
-    }, [urlCompanyId, urlType]);
-
-    useEffect(() => {
-        if (selectedCompany) loadLedgers(selectedCompany);
-        else setLedgers([]);
-    }, [selectedCompany]);
-
-    const fetchUser = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            setUserId(user.id);
-            const { data } = await supabase.from('users').select('role').eq('id', user.id).single();
-            setUserRole(data?.role);
-        }
-    };
-
-    const loadCompanies = async () => {
-        const data = await getAccessibleCompanies();
-        if (data && data.length > 0) {
-            setCompanies(data);
-            if (!selectedCompany) setSelectedCompany(data[0].id);
-        }
+    const loadLedgers = async (cid) => {
+        const { data } = await supabase.from('ledgers').select('*').eq('company_id', cid);
+        if (data) setLedgers(data || []);
         setLoading(false);
     };
 
-    const loadLedgers = async (companyId) => {
-        const data = await getLedgers(companyId);
-        if (data) setLedgers(data);
-    };
-
     const getHeaderLedgers = () => {
-        if (!ledgers.length) return [];
         const filterCash = (l) => {
             if (l.group_name === 'Bank Accounts') return true;
             if (l.group_name === 'Cash-in-hand') {
@@ -116,7 +59,7 @@ function VouchersContent() {
             return false;
         };
 
-        switch (voucherType) {
+        switch (type) {
             case 'receipt': return ledgers.filter(l => filterCash(l));
             case 'payment': return ledgers.filter(l => filterCash(l));
             case 'sales': return ledgers.filter(l => l.group_name === 'Sundry Debtors' || filterCash(l));
@@ -127,7 +70,6 @@ function VouchersContent() {
     };
 
     const getRowLedgers = () => {
-        if (!ledgers.length) return [];
         const isCashOrBank = (l) => l.group_name === 'Cash-in-hand' || l.group_name === 'Bank Accounts';
         const filterCash = (l) => {
             if (l.group_name === 'Bank Accounts') return true;
@@ -138,7 +80,7 @@ function VouchersContent() {
             return false;
         };
 
-        switch (voucherType) {
+        switch (type) {
             case 'receipt': return ledgers.filter(l => !isCashOrBank(l));
             case 'payment': return ledgers.filter(l => !isCashOrBank(l));
             case 'sales': return ledgers.filter(l => l.group_name === 'Sales Accounts');
@@ -160,36 +102,74 @@ function VouchersContent() {
         setRows(newRows);
     };
 
+    const handleCreateLedger = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('company_id', companyId);
+        formData.append('name', newLedgerName);
+        formData.append('group_name', newLedgerGroup);
+        formData.append('opening_balance', 0);
+        formData.append('is_cash_ledger', false);
+
+        const result = await createLedger(formData);
+        if (result.success) {
+            setShowCreateLedger(false);
+            setNewLedgerName('');
+            loadLedgers(companyId);
+        } else alert(result.error);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!headerLedgerId) return alert('Please select a valid Account');
-
         const validRows = rows.filter(r => r.ledger_id && Number(r.amount) > 0);
         if (validRows.length === 0) return alert('Add at least one valid entry');
 
         const entries = [];
         const totalAmount = validRows.reduce((sum, r) => sum + Number(r.amount), 0);
-
-        if (voucherType === 'receipt') {
+        if (type === 'receipt') {
             entries.push({ ledger_id: headerLedgerId, debit: totalAmount, credit: 0 });
             validRows.forEach(r => entries.push({ ledger_id: r.ledger_id, debit: 0, credit: Number(r.amount) }));
-        } else if (voucherType === 'payment') {
+        } else if (type === 'payment') {
             entries.push({ ledger_id: headerLedgerId, debit: 0, credit: totalAmount });
             validRows.forEach(r => entries.push({ ledger_id: r.ledger_id, debit: Number(r.amount), credit: 0 }));
-        } else if (voucherType === 'sales') {
+        } else if (type === 'sales') {
             entries.push({ ledger_id: headerLedgerId, debit: totalAmount, credit: 0 });
             validRows.forEach(r => entries.push({ ledger_id: r.ledger_id, debit: 0, credit: Number(r.amount) }));
-        } else if (voucherType === 'purchase') {
+        } else if (type === 'purchase') {
             entries.push({ ledger_id: headerLedgerId, debit: 0, credit: totalAmount });
             validRows.forEach(r => entries.push({ ledger_id: r.ledger_id, debit: Number(r.amount), credit: 0 }));
-        } else if (voucherType === 'contra') {
+        } else if (type === 'contra') {
             entries.push({ ledger_id: headerLedgerId, debit: 0, credit: totalAmount });
+            validRows.forEach(r => entries.push({ ledger_id: r.ledger_id, debit: Number(r.amount), credit: 0 }));
+        } else if (type === 'journal') {
+            // Simplify journal for now: Handled slightly differently in Tally but let's keep the core
+            // Just one Dr and one Cr for now in this restricted UI
             validRows.forEach(r => entries.push({ ledger_id: r.ledger_id, debit: Number(r.amount), credit: 0 }));
         }
 
+        if (!navigator.onLine) {
+            const offlinePayload = {
+                companyId,
+                type,
+                date: voucherDate,
+                narration,
+                entries
+            };
+            try {
+                await saveVoucherOffline(offlinePayload);
+                alert('⚠️ OFFLINE: Entry saved locally. It will sync automatically when you are back online.');
+                setRows([{ ledger_id: '', amount: '', search: '' }]);
+                setNarration('');
+                return;
+            } catch (err) {
+                return alert('Failed to save offline: ' + err.message);
+            }
+        }
+
         const formData = new FormData();
-        formData.append('company_id', selectedCompany);
-        formData.append('voucher_type', voucherType);
+        formData.append('company_id', companyId);
+        formData.append('voucher_type', type);
         formData.append('date', voucherDate);
         formData.append('narration', narration);
 
@@ -204,21 +184,15 @@ function VouchersContent() {
 
     if (loading) return <div>Loading...</div>;
 
-    const pageTitle = {
-        'receipt': 'Receipt', 'payment': 'Payment', 'sales': 'Sales', 'purchase': 'Purchase', 'contra': 'Contra', 'journal': 'Journal'
-    }[voucherType];
-
-    const containerClass = `${styles.tallyContainer} ${styles[voucherType]}`;
-
     return (
-        <div className={containerClass}>
+        <div className={`${styles.tallyContainer}`}>
             <div className={styles.tallyHeader}>
                 <div className={styles.headerLeft}>
                     <div className={styles.vNoLabel}>No.</div>
                     <div className={styles.vNoValue}>{nextNo}</div>
                 </div>
                 <div className={styles.headerCenter}>
-                    <h1 className={styles.vType}>{pageTitle.toUpperCase()}</h1>
+                    <h1 className={styles.vType}>{type.toUpperCase()}</h1>
                 </div>
                 <div className={styles.headerRight}>
                     <div className={styles.vDateRow}>
@@ -301,21 +275,20 @@ function VouchersContent() {
                         <div className={styles.tallyTotal}>
                             Total: ₹ {rows.reduce((sum, r) => sum + Number(r.amount || 0), 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </div>
-                        <button type="submit" className={styles.tallySubmitBtn}>Accept (Enter)</button>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button type="button" onClick={onExit} className={styles.tallyAddBtn}>Exit / Back</button>
+                            <button type="submit" className={styles.tallySubmitBtn}>Accept (Enter)</button>
+                        </div>
                     </div>
                 </div>
             </form>
 
-            {/* Create Ledger Modal */}
             {showCreateLedger && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.tallyModal}>
                         <h3>Ledger Creation</h3>
                         <form onSubmit={handleCreateLedger} className={styles.tallyForm}>
-                            <div className={styles.tallyRow}>
-                                <label>Name:</label>
-                                <input value={newLedgerName} onChange={e => setNewLedgerName(e.target.value)} className={styles.tallyInput} autoFocus required />
-                            </div>
+                            <div className={styles.tallyRow}><label>Name:</label><input value={newLedgerName} onChange={e => setNewLedgerName(e.target.value)} className={styles.tallyInput} autoFocus required /></div>
                             <div className={styles.tallyRow}>
                                 <label>Under:</label>
                                 <select value={newLedgerGroup} onChange={e => setNewLedgerGroup(e.target.value)} className={styles.tallyInput}>
@@ -323,8 +296,6 @@ function VouchersContent() {
                                     <option value="Sundry Creditors">Sundry Creditors</option>
                                     <option value="Direct Expenses">Direct Expenses</option>
                                     <option value="Indirect Expenses">Indirect Expenses</option>
-                                    <option value="Sales Accounts">Sales Accounts</option>
-                                    <option value="Purchase Accounts">Purchase Accounts</option>
                                 </select>
                             </div>
                             <div className={styles.modalActions}>
@@ -336,13 +307,5 @@ function VouchersContent() {
                 </div>
             )}
         </div>
-    );
-}
-
-export default function VouchersPage() {
-    return (
-        <Suspense fallback={<div>Loading Vouchers...</div>}>
-            <VouchersContent />
-        </Suspense>
     );
 }

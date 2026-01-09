@@ -1,0 +1,17 @@
+{
+    "name": "Dual Entry Accounting",
+    "short_name": "Accounting",
+    "description": "Secure, Cloud-Based Financial Management",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#001e80",
+    "theme_color": "#001e80",
+    "icons": [
+        {
+            "src": "/icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

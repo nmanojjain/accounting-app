@@ -1,33 +1,33 @@
 /* Main Container */
 .container {
     padding: 1rem;
-    height: calc(100vh - 64px);
+    height: calc(100vh - 72px);
     display: flex;
     flex-direction: column;
-    background: #f1f5f9;
-    /* Light grey background like the image */
-    font-family: 'Inter', sans-serif;
+    background: var(--background);
+    font-family: var(--font-sans);
+    gap: 0.75rem;
 }
 
-.title {
+.reportSelector {
     font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    color: #1e293b;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    font-weight: 800;
+    border: none;
+    background: transparent;
+    padding: 0;
+    color: var(--foreground);
+    outline: none;
+    cursor: pointer;
 }
 
 /* Date Slider */
 .dateSlider {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     overflow-x: auto;
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
+    padding: 0.25rem 0;
+    margin-bottom: 0.25rem;
     scrollbar-width: none;
-    /* Hide scrollbar */
 }
 
 .dateSlider::-webkit-scrollbar {
@@ -36,153 +36,139 @@
 
 .dateCard {
     background: white;
-    min-width: 60px;
-    padding: 0.75rem 0.5rem;
-    border-radius: 12px;
+    min-width: 50px;
+    padding: 0.5rem;
+    border-radius: 0.75rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border: 1px solid transparent;
+    border: 1px solid var(--card-border);
     transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .dateCard.active {
-    background: #1e3a8a;
-    /* Deep Blue */
+    background: var(--primary);
     color: white;
-    box-shadow: 0 4px 10px rgba(30, 58, 138, 0.3);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
 }
 
 .dateCardMonth {
-    font-size: 0.75rem;
-    font-weight: 500;
+    font-size: 0.6rem;
+    font-weight: 700;
     text-transform: uppercase;
 }
 
 .dateCardDay {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-top: 2px;
+    font-size: 1.1rem;
+    font-weight: 800;
 }
 
-/* Summary Cards Grid */
-.summaryGrid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.summaryCard {
-    background: #1e3a8a;
-    /* Deep Blue */
-    color: white;
-    padding: 1.25rem;
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    box-shadow: 0 4px 6px rgba(30, 58, 138, 0.2);
-    min-height: 100px;
-}
-
-.summaryValue {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-    font-family: 'Roboto Mono', monospace;
-}
-
-.summaryLabel {
-    font-size: 0.8rem;
-    opacity: 0.9;
-    font-weight: 500;
-}
-
-.summaryCard.highlight {
-    background: #2563eb;
-    /* Lighter Blue */
-}
-
-/* Controls (Legacy - kept for Ledger view but styled) */
+/* Controls */
 .controls {
     display: flex;
     gap: 1rem;
-    margin-bottom: 1rem;
-    align-items: center;
+    align-items: flex-end;
     flex-wrap: wrap;
     background: white;
-    padding: 0.75rem;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-sm);
 }
 
-.select {
-    padding: 0.5rem 1rem;
-    border: 1px solid #cbd5e1;
-    background: white;
-    color: #334155;
-    border-radius: 8px;
+.controlGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.controlGroup label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-left: 0.125rem;
+}
+
+.dateControls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f8fafc;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--card-border);
+}
+
+.selectAllBtn {
+    background: #e2e8f0;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.4rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    white-space: nowrap;
+    margin-left: 0.5rem;
+}
+
+.selectAllBtn:hover {
+    background: #cbd5e1;
+    color: #1e293b;
+}
+
+.toLabel {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #94a3b8;
+}
+
+.select,
+.input {
+    padding: 0.4rem 0.75rem;
+    border: 1px solid transparent;
+    background: #f8fafc;
+    color: var(--foreground);
+    border-radius: 0.5rem;
     font-size: 0.9rem;
+    font-weight: 700;
     outline: none;
 }
 
-/* Report Content Area */
+.dateControls .input {
+    background: transparent;
+    border: none;
+    padding: 0.3rem 0.5rem;
+}
+
+/* Report Content */
 .reportContent {
     flex: 1;
     background: white;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    border: 1px solid var(--card-border);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-md);
 }
 
-/* Ledger Header */
-.ledgerHeader {
-    padding: 1.25rem;
-    background: white;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.ledgerTitle {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1e293b;
-}
-
-.ledgerPeriod {
-    font-size: 0.9rem;
-    color: #64748b;
-    background: #f1f5f9;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-}
-
-/* Table Container */
 .tableContainer {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: auto;
-    scrollbar-width: thin;
+    overflow: auto;
 }
 
-/* Table Styling */
 .table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    min-width: 800px;
 }
 
 .table th {
@@ -190,122 +176,171 @@
     top: 0;
     background: #f8fafc;
     color: #64748b;
-    font-weight: 600;
-    font-size: 0.8rem;
+    font-weight: 700;
+    font-size: 0.7rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 1rem;
+    padding: 0.6rem 0.75rem;
     text-align: left;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 2px solid var(--card-border);
     z-index: 5;
 }
 
 .table td {
-    padding: 1rem;
-    color: #334155;
+    padding: 0.4rem 0.75rem;
+    color: var(--foreground);
     border-bottom: 1px solid #f1f5f9;
-    font-size: 0.95rem;
-    vertical-align: top;
+    font-size: 0.85rem;
+    vertical-align: middle;
 }
 
-.table tr:last-child td {
-    border-bottom: none;
-}
-
-.colAmount {
+.colDebit,
+.colCredit,
+.colBalance {
     text-align: right;
-    font-family: 'Roboto Mono', monospace;
-    font-weight: 500;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    width: 110px;
 }
 
-/* Mobile Optimization */
+/* Vertical Separator */
+.colCredit {
+    border-left: 1px solid #e2e8f0 !important;
+}
+
+.headerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0.5rem;
+}
+
+.table th,
+.table td {
+    border-right: 1px solid #f1f5f9;
+}
+
+.table th:last-child,
+.table td:last-child {
+    border-right: none;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.editBtn,
+.deleteBtn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.editBtn {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.editBtn:hover {
+    background: #2563eb;
+    color: white;
+}
+
+.deleteBtn {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.deleteBtn:hover {
+    background: #ef4444;
+    color: white;
+}
+
+.particularsMain {
+    font-weight: 700;
+    color: var(--foreground);
+    font-size: 0.9rem;
+}
+
+.particularsSub {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 1px;
+}
+
+.colDate {
+    width: 100px;
+}
+
+.colType {
+    width: 100px;
+}
+
+.colNo {
+    width: 80px;
+}
+
+.colAction {
+    width: 120px;
+}
+
+.cancelledVoucher {
+    background-color: #fef2f2;
+    opacity: 0.7;
+}
+
+.voucherStartRow td {
+    border-top: 2px solid #f1f5f9;
+}
+
+.openingRow td,
+.closingRow td {
+    background: #f8fafc;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+}
+
+.evenVoucher {
+    background: #ffffff;
+}
+
+.oddVoucher {
+    background: #f8fafc;
+}
+
+.oddVoucher:hover,
+.evenVoucher:hover {
+    background: #f1f5f9;
+}
+
+/* Small Buttons */
+.deleteBtn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    border-radius: 0.4rem;
+}
+
+/* Mobile optimization */
 @media (max-width: 768px) {
-    .container {
-        padding: 0.75rem;
-        background: #f8fafc;
-    }
-
-    .reportContent {
-        background: transparent;
-        border: none;
-        box-shadow: none;
-        overflow: visible;
-    }
-
-    .tableContainer {
-        overflow: visible;
-    }
-
-    .table {
-        display: block;
-        min-width: 100%;
-    }
-
-    .table thead {
-        display: none;
-    }
-
-    .table tbody,
-    .table tr,
-    .table td {
-        display: block;
-        width: 100%;
+    .colCredit {
+        border-left: none !important;
     }
 
     .table tr {
-        background: white;
-        margin-bottom: 0.75rem;
-        border-radius: 12px;
-        padding: 1rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e2e8f0;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.75rem;
     }
 
     .table td {
         padding: 0.25rem 0;
-        border: none;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        text-align: right;
-    }
-
-    .table td::before {
-        content: attr(data-label);
-        font-weight: 600;
-        color: #94a3b8;
-        font-size: 0.85rem;
-        text-align: left;
-    }
-
-    /* Special Layout for Mobile Rows to look like the image list */
-    .table td:nth-child(2) {
-        /* Particulars */
-        order: -1;
-        /* Move to top */
-        width: 100%;
-        text-align: left;
-        font-weight: 600;
-        color: #1e293b;
-        font-size: 1rem;
-        margin-bottom: 0.5rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #f1f5f9;
-        display: block;
-    }
-
-    .table td:nth-child(2)::before {
-        display: none;
-    }
-
-    .table td:first-child {
-        /* Date */
-        display: none;
-        /* Hide date in individual cards if we have the slider */
-    }
-
-    .colAmount {
-        font-size: 1rem;
-        color: #1e293b;
+        font-size: 0.8rem;
     }
 }

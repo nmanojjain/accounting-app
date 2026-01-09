@@ -80,6 +80,16 @@ const getAdminClient = () => {
     });
 };
 
+const isDebitNature = (group) => {
+    const debits = [
+        'Asset', 'Expense', 'Cash-in-hand', 'Bank Accounts',
+        'Sundry Debtors', 'Current Assets', 'Direct Expenses',
+        'Indirect Expenses', 'Purchase Accounts', 'Stock-in-hand',
+        'Deposits (Asset)', 'Loans & Advances (Asset)'
+    ];
+    return debits.includes(group);
+};
+
 export async function getAccessibleCompanies() {
     const supabase = await createAuthClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -174,6 +184,7 @@ export async function createOperator(formData) {
 
     const email = formData.get('email');
     const password = formData.get('password');
+    const passkey = formData.get('passkey');
     const role = 'operator';
 
     // 1. Create Auth User
@@ -213,14 +224,21 @@ export async function createOperator(formData) {
                 .insert([{
                     id: userId,
                     email: email,
-                    role: role
+                    role: role,
+                    passkey: passkey
                 }]);
 
             if (profileError) {
                 return { error: 'Profile failed: ' + profileError.message };
             }
         } else {
-            return { success: true, message: 'User already exists, profile verified.' };
+            // Update passkey for existing profile if provided
+            await supabaseAdmin
+                .from('users')
+                .update({ passkey: passkey })
+                .eq('id', userId);
+
+            return { success: true, message: 'User profile updated with passkey.' };
         }
     }
 
@@ -323,6 +341,41 @@ export async function updateLedger(formData) {
     return { success: true };
 }
 
+export async function getNextVoucherNumber(companyId, voucherType) {
+    const supabase = await createAuthClient();
+    const accessCheck = await validateCompanyAccess(supabase, companyId);
+    if (accessCheck.error) return { error: accessCheck.error };
+
+    const prefixes = {
+        'receipt': 'REC',
+        'payment': 'PMT',
+        'sales': 'SAL',
+        'purchase': 'PUR',
+        'journal': 'JV',
+        'contra': 'CON'
+    };
+    const prefix = prefixes[voucherType] || 'VOU';
+    const adminClient = getAdminClient();
+
+    const { data: lastVoucher } = await adminClient
+        .from('vouchers')
+        .select('voucher_number')
+        .eq('company_id', companyId)
+        .eq('voucher_type', voucherType)
+        .ilike('voucher_number', `${prefix}%`)
+        .order('voucher_number', { ascending: false })
+        .limit(1)
+        .single();
+
+    let lastNum = 0;
+    if (lastVoucher?.voucher_number) {
+        const match = lastVoucher.voucher_number.match(/\d+$/);
+        if (match) lastNum = parseInt(match[0]);
+    }
+
+    return `${prefix}${(lastNum + 1).toString().padStart(4, '0')}`;
+}
+
 export async function createVoucher(formData, entries) {
     const supabase = await createAuthClient();
     const company_id = formData.get('company_id');
@@ -330,14 +383,7 @@ export async function createVoucher(formData, entries) {
     const date = formData.get('date');
     const narration = formData.get('narration');
 
-    // 1. Date Validation
-    const minDate = '2025-04-01';
-    const maxDate = '2026-03-31';
-    if (date < minDate || date > maxDate) {
-        return { error: 'Date must be within Financial Year (01-04-2025 to 31-03-2026)' };
-    }
-
-    // Validate Access (Operator can create vouchers for assigned company)
+    // 1. Access Check
     const accessCheck = await validateCompanyAccess(supabase, company_id);
     if (accessCheck.error) return { error: accessCheck.error };
 
@@ -368,11 +414,41 @@ export async function createVoucher(formData, entries) {
         }
     }
 
+    // 3. Generate Sequential Voucher Number based on Type
+    const prefixes = {
+        'receipt': 'REC',
+        'payment': 'PMT',
+        'sales': 'SAL',
+        'purchase': 'PUR',
+        'journal': 'JV',
+        'contra': 'CON'
+    };
+    const prefix = prefixes[voucher_type] || 'VOU';
+
+    const { data: lastVoucher } = await adminClient
+        .from('vouchers')
+        .select('voucher_number')
+        .eq('company_id', company_id)
+        .eq('voucher_type', voucher_type)
+        .ilike('voucher_number', `${prefix}%`)
+        .order('voucher_number', { ascending: false })
+        .limit(1)
+        .single();
+
+    let lastNum = 0;
+    if (lastVoucher?.voucher_number) {
+        const match = lastVoucher.voucher_number.match(/\d+$/);
+        if (match) lastNum = parseInt(match[0]);
+    }
+
+    const nextVoucherNumber = `${prefix}${(lastNum + 1).toString().padStart(4, '0')}`;
+
     const { data: voucher, error: voucherError } = await adminClient
         .from('vouchers')
         .insert([{
             company_id,
             voucher_type,
+            voucher_number: nextVoucherNumber,
             date,
             narration,
             created_by: accessCheck.user.id
@@ -395,6 +471,9 @@ export async function createVoucher(formData, entries) {
 
     if (entriesError) return { error: entriesError.message };
 
+    // Help determine if a ledger group is Debit Nature (Asset/Expense)
+    // removed local isDebitNature as it is now global
+
     for (const entry of voucherEntries) {
         const { data: ledger } = await adminClient
             .from('ledgers')
@@ -404,9 +483,7 @@ export async function createVoucher(formData, entries) {
 
         if (ledger) {
             let newBalance = Number(ledger.current_balance);
-            const isDebitNature = ['Asset', 'Expense', 'Cash-in-hand', 'Bank Accounts'].includes(ledger.group_name);
-
-            if (isDebitNature) {
+            if (isDebitNature(ledger.group_name)) {
                 newBalance += (Number(entry.debit) - Number(entry.credit));
             } else {
                 newBalance += (Number(entry.credit) - Number(entry.debit));
@@ -583,8 +660,11 @@ export async function deleteVoucher(voucherId) {
     const adminCheck = await checkAdmin(supabase);
     if (adminCheck.error) return { error: adminCheck.error };
 
+    const adminClient = getAdminClient();
+    // removed local isDebitNature
+
     // 1. Fetch Entries to Reverse Balances
-    const { data: entries, error: fetchError } = await supabase
+    const { data: entries, error: fetchError } = await adminClient
         .from('voucher_entries')
         .select('*')
         .eq('voucher_id', voucherId);
@@ -593,35 +673,21 @@ export async function deleteVoucher(voucherId) {
 
     // 2. Reverse Balances
     for (const entry of entries) {
-        const { data: ledger } = await supabase.from('ledgers').select('current_balance, group_name, id').eq('id', entry.ledger_id).single();
+        const { data: ledger } = await adminClient.from('ledgers').select('current_balance, group_name, id').eq('id', entry.ledger_id).single();
         if (ledger) {
             let newBalance = Number(ledger.current_balance);
-            const isDebitNature = ['Asset', 'Expense'].includes(ledger.group_name);
-
-            // To Reverse:
-            // If it was a Debit entry (added to debit nature, sub from credit), we do opposite.
-            // Debit Entry: Deduct from Debit Nature, Add to Credit Nature.
-            // Credit Entry: Add to Debit Nature, Deduct from Credit Nature.
-
-            if (isDebitNature) {
-                // Was: newBalance += (Debit - Credit)
-                // Now: newBalance -= (Debit - Credit) => newBalance += (Credit - Debit)
+            if (isDebitNature(ledger.group_name)) {
                 newBalance += (Number(entry.credit) - Number(entry.debit));
             } else {
-                // Was: newBalance += (Credit - Debit)
-                // Now: newBalance -= (Credit - Debit) => newBalance += (Debit - Credit)
                 newBalance += (Number(entry.debit) - Number(entry.credit));
             }
-
-            await supabase.from('ledgers').update({ current_balance: newBalance }).eq('id', ledger.id);
+            await adminClient.from('ledgers').update({ current_balance: newBalance }).eq('id', ledger.id);
         }
     }
 
-    // 3. Delete Voucher (Cascade should delete entries, but if not we delete entries first)
-    // Assuming Cascade is NOT set for safety or we rely on it. Let's delete entries first to be safe.
-    await supabase.from('voucher_entries').delete().eq('voucher_id', voucherId);
-
-    const { error: deleteError } = await supabase.from('vouchers').delete().eq('id', voucherId);
+    // 3. Delete Voucher
+    await adminClient.from('voucher_entries').delete().eq('voucher_id', voucherId);
+    const { error: deleteError } = await adminClient.from('vouchers').delete().eq('id', voucherId);
     if (deleteError) return { error: deleteError.message };
 
     return { success: true };
@@ -677,8 +743,6 @@ export async function updateVoucher(formData, newEntries) {
             const oldEntry = oldEntries.find(e => e.ledger_id === ledgerId);
             if (oldEntry) {
                 // Cash is Debit Nature.
-                // If Old was Debit 100, Balance increased by 100. Revert = -100.
-                // If Old was Credit 100, Balance decreased by 100. Revert = +100.
                 projectedBalance -= (Number(oldEntry.debit) - Number(oldEntry.credit));
             }
 
@@ -694,16 +758,12 @@ export async function updateVoucher(formData, newEntries) {
         }
     }
 
-    // 4. Execution (Reverse Old -> Delete Old -> Update Header -> Insert New -> Update New)
-
     // A. Reverse Old Balances
     for (const entry of oldEntries) {
         const { data: ledger } = await adminClient.from('ledgers').select('current_balance, group_name').eq('id', entry.ledger_id).single();
         if (ledger) {
             let bal = Number(ledger.current_balance);
-            const isDebitNature = ['Asset', 'Expense', 'Cash-in-hand', 'Bank Accounts'].includes(ledger.group_name);
-            // Reverse logic: If Debit Nature, subtract (Debit-Credit).
-            if (isDebitNature) {
+            if (isDebitNature(ledger.group_name)) {
                 bal -= (Number(entry.debit) - Number(entry.credit));
             } else {
                 bal -= (Number(entry.credit) - Number(entry.debit));
@@ -716,18 +776,17 @@ export async function updateVoucher(formData, newEntries) {
     await adminClient.from('voucher_entries').delete().eq('voucher_id', voucherId);
 
     // C. Update Voucher Header
-    const { error: updateError } = await adminClient
+    const { error: headerUpdateError } = await adminClient
         .from('vouchers')
         .update({
             company_id,
             voucher_type,
             date,
-            narration,
-            // created_by remains unchanged
+            narration: narration // Note: We assume updating narration clears "CANCELLED:" if it was there
         })
         .eq('id', voucherId);
 
-    if (updateError) return { error: updateError.message };
+    if (headerUpdateError) return { error: headerUpdateError.message };
 
     // D. Insert New Entries
     const voucherEntries = newEntries.map(entry => ({
@@ -748,9 +807,7 @@ export async function updateVoucher(formData, newEntries) {
         const { data: ledger } = await adminClient.from('ledgers').select('current_balance, group_name').eq('id', entry.ledger_id).single();
         if (ledger) {
             let bal = Number(ledger.current_balance);
-            const isDebitNature = ['Asset', 'Expense', 'Cash-in-hand', 'Bank Accounts'].includes(ledger.group_name);
-
-            if (isDebitNature) {
+            if (isDebitNature(ledger.group_name)) {
                 bal += (Number(entry.debit) - Number(entry.credit));
             } else {
                 bal += (Number(entry.credit) - Number(entry.debit));
@@ -763,58 +820,82 @@ export async function updateVoucher(formData, newEntries) {
 }
 
 export async function cancelVoucher(voucherId) {
-    const supabase = await createAuthClient();
-    const adminCheck = await checkAdmin(supabase);
-    if (adminCheck.error) return { error: adminCheck.error };
+    try {
+        const supabase = await createAuthClient();
+        const adminCheck = await checkAdmin(supabase);
+        if (adminCheck.error) return { error: adminCheck.error };
 
-    const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
+        const adminClient = getAdminClient();
 
-    // 1. Fetch Voucher and Entries
-    const { data: voucher, error: vError } = await supabase
-        .from('vouchers')
-        .select('narration')
-        .eq('id', voucherId)
-        .single();
+        const isDebitNature = (group) => {
+            const debits = ['Asset', 'Expense', 'Cash-in-hand', 'Bank Accounts', 'Sundry Debtors', 'Current Assets', 'Direct Expenses', 'Indirect Expenses', 'Purchase Accounts', 'Stock-in-hand', 'Deposits (Asset)', 'Loans & Advances (Asset)'];
+            return debits.includes(group);
+        };
 
-    if (vError) return { error: vError.message };
+        // 1. Fetch Voucher and Entries
+        const { data: voucher, error: vError } = await adminClient
+            .from('vouchers')
+            .select('narration')
+            .eq('id', voucherId)
+            .single();
 
-    const { data: entries, error: fetchError } = await supabase
-        .from('voucher_entries')
-        .select('*')
-        .eq('voucher_id', voucherId);
+        if (vError) return { error: `Fetch Voucher Error: ${vError.message}` };
+        if (!voucher) return { error: 'Voucher not found' };
 
-    if (fetchError) return { error: fetchError.message };
+        const { data: entries, error: fetchError } = await adminClient
+            .from('voucher_entries')
+            .select('*')
+            .eq('voucher_id', voucherId);
 
-    // 2. Reverse Balances (Same logic as delete)
-    for (const entry of entries) {
-        const { data: ledger } = await supabase.from('ledgers').select('current_balance, group_name, id').eq('id', entry.ledger_id).single();
-        if (ledger) {
-            let newBalance = Number(ledger.current_balance);
-            const isDebitNature = ['Asset', 'Expense', 'Cash-in-hand', 'Bank Accounts'].includes(ledger.group_name);
+        if (fetchError) return { error: `Fetch Entries Error: ${fetchError.message}` };
 
-            if (isDebitNature) {
-                newBalance += (Number(entry.credit) - Number(entry.debit));
-            } else {
-                newBalance += (Number(entry.debit) - Number(entry.credit));
+        // 2. Reverse Balances
+        for (const entry of entries) {
+            const { data: ledger } = await adminClient
+                .from('ledgers')
+                .select('current_balance, group_name, id')
+                .eq('id', entry.ledger_id)
+                .single();
+
+            if (ledger) {
+                let newBalance = Number(ledger.current_balance);
+                if (isDebitNature(ledger.group_name)) {
+                    newBalance += (Number(entry.credit) - Number(entry.debit));
+                } else {
+                    newBalance += (Number(entry.debit) - Number(entry.credit));
+                }
+                const { error: balError } = await adminClient
+                    .from('ledgers')
+                    .update({ current_balance: newBalance })
+                    .eq('id', ledger.id);
+
+                if (balError) return { error: `Balance Update Error: ${balError.message}` };
             }
-
-            await supabase.from('ledgers').update({ current_balance: newBalance }).eq('id', ledger.id);
         }
+
+        // 3. Update Voucher Narration
+        const newNarration = `CANCELLED: ${voucher.narration || ''} (by ${user?.email || 'unknown'})`;
+
+        const { error: narrationError } = await adminClient
+            .from('vouchers')
+            .update({ narration: newNarration })
+            .eq('id', voucherId);
+
+        if (narrationError) return { error: `Update Narration Error: ${narrationError.message}` };
+
+        // 4. Zero out entries for the cancelled voucher
+        const { error: entryZeroError } = await adminClient
+            .from('voucher_entries')
+            .update({ debit: 0, credit: 0 })
+            .eq('voucher_id', voucherId);
+
+        if (entryZeroError) return { error: `Zero Entries Error: ${entryZeroError.message}` };
+
+        return { success: true };
+    } catch (e) {
+        return { error: `System Error: ${e.message}` };
     }
-
-    // 3. Delete Entries (Make it blank)
-    await supabase.from('voucher_entries').delete().eq('voucher_id', voucherId);
-
-    // 4. Update Voucher Narration to mark as Cancelled
-    const newNarration = `CANCELLED: ${voucher.narration} (by ${user.email})`;
-    const { error: updateError } = await supabase
-        .from('vouchers')
-        .update({ narration: newNarration })
-        .eq('id', voucherId);
-
-    if (updateError) return { error: updateError.message };
-
-    return { success: true };
 }
 
 export async function getDayBook(companyId, fromDate, toDate) {
@@ -844,29 +925,53 @@ export async function getDayBook(companyId, fromDate, toDate) {
     return { success: true, data };
 }
 
-export async function getLedgerEntries(companyId, ledgerId) {
+export async function getLedgerEntries(ledgerId, fromDate, toDate) {
     const supabase = await createAuthClient();
-    const access = await validateCompanyAccess(supabase, companyId);
-    if (access.error) return { error: access.error };
-
     const adminClient = getAdminClient();
 
     // 1. Ledger Details
     const { data: ledgerData } = await adminClient
         .from('ledgers')
-        .select('opening_balance, group_name')
+        .select('id, name, opening_balance, group_name, company_id')
         .eq('id', ledgerId)
         .single();
 
     if (!ledgerData) return { error: 'Ledger not found' };
 
-    // 2. Entries
-    const { data: allEntries, error } = await adminClient
+    // Access Check
+    const access = await validateCompanyAccess(supabase, ledgerData.company_id);
+    if (access.error) return { error: access.error };
+
+    // 2. Opening Balance for the period
+    const { data: beforeEntries } = await adminClient
+        .from('voucher_entries')
+        .select('debit, credit, voucher:vouchers!inner(date, narration)')
+        .eq('ledger_id', ledgerId)
+        .lt('voucher.date', fromDate);
+
+    // Manual filter out cancelled in JS if narration starts with CANCELLED:
+    const filteredBeforeEntries = beforeEntries?.filter(e => !(e.voucher?.narration && e.voucher.narration.startsWith('CANCELLED:'))) || [];
+
+    let periodOpening = Number(ledgerData.opening_balance);
+    // removed local isDebitNature
+
+    if (filteredBeforeEntries) {
+        filteredBeforeEntries.forEach(e => {
+            if (isDebitNature(ledgerData.group_name)) {
+                periodOpening += (Number(e.debit) - Number(e.credit));
+            } else {
+                periodOpening += (Number(e.credit) - Number(e.debit));
+            }
+        });
+    }
+
+    // 3. Entries for the range
+    const { data: entries, error } = await adminClient
         .from('voucher_entries')
         .select(`
             id, debit, credit,
-            voucher:vouchers (
-                id, date, voucher_type, voucher_number, narration,
+            voucher:vouchers!inner (
+                id, date, voucher_type, voucher_number, narration, 
                 voucher_entries (
                     ledger_id,
                     ledger:ledgers(name),
@@ -875,9 +980,21 @@ export async function getLedgerEntries(companyId, ledgerId) {
                 )
             )
         `)
-        .eq('ledger_id', ledgerId);
+        .eq('ledger_id', ledgerId)
+        .gte('voucher.date', fromDate)
+        .lte('voucher.date', toDate)
+        .order('date', { foreignTable: 'vouchers', ascending: true });
 
     if (error) return { error: error.message };
 
-    return { success: true, ledgerData, allEntries };
+    // Filter out cancelled vouchers in JS
+    const activeEntries = entries?.filter(e => !(e.voucher?.narration && e.voucher.narration.startsWith('CANCELLED:'))) || [];
+
+    return {
+        success: true,
+        data: {
+            entries: activeEntries,
+            opening_balance: periodOpening
+        }
+    };
 }

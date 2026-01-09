@@ -1,146 +1,277 @@
 .container {
-    padding: 2rem;
-    max-width: 1000px;
+    padding: 1rem;
+    max-width: 1400px;
     margin: 0 auto;
+    min-height: 100vh;
+    background: #f8fafc;
 }
 
-.header {
-    margin-bottom: 2rem;
-    border-bottom: 1px solid var(--border);
+.workspaceHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 1rem;
 }
 
-.header h1 {
-    font-size: 2rem;
-    color: var(--foreground);
-    margin: 0;
-}
-
-.header p {
-    color: #94a3b8;
-    margin: 0.5rem 0 0;
-}
-
-.balanceSection {
-    margin-bottom: 2rem;
-}
-
-.balanceCard {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-    padding: 2rem;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
-    text-align: center;
-}
-
-.balanceCard h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    opacity: 0.9;
-    font-weight: 500;
-}
-
-.balance {
-    font-size: 3rem;
-    font-weight: 700;
-    margin: 0.5rem 0;
-}
-
-.balanceLabel {
-    font-size: 0.9rem;
-    opacity: 0.8;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-}
-
-.tabsContainer {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+.titleGroup {
+    display: flex;
+    align-items: center;
     gap: 1rem;
-    margin-bottom: 2rem;
 }
 
-.tab {
+.workspaceHeader h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+}
+
+.fyBadge {
+    background: #e2e8f0;
+    color: #475569;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.toggleBtn {
+    background: white;
+    border: 1px solid #cbd5e1;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #475569;
+}
+
+.toggleBtn:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.activeToggle {
+    background: #2563eb;
+    color: white !important;
+    border-color: #1d4ed8;
+}
+
+.topTabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Tally Themed Backgrounds for Entire Page */
+.container.receipt {
+    background-color: #e3f2fd;
+}
+
+.container.payment {
+    background-color: #fffde7;
+}
+
+.container.sales {
+    background-color: #e8f5e9;
+}
+
+.container.purchase {
+    background-color: #fce4ec;
+}
+
+.container.contra {
+    background-color: #f5f5f5;
+}
+
+.container.journal {
+    background-color: #f3e5f5;
+}
+
+.workspaceBody.entryModeBody {
+    background: rgba(255, 255, 255, 0.4);
+    box-shadow: none;
+    border: none;
+}
+
+.typeBtn {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.receiptSelected {
+    border-color: #3b82f6;
+    background: #eff6ff !important;
+}
+
+.paymentSelected {
+    border-color: #f59e0b;
+    background: #fffbeb !important;
+}
+
+.salesSelected {
+    border-color: #22c55e;
+    background: #f0fdf4 !important;
+}
+
+.purchaseSelected {
+    border-color: #ef4444;
+    background: #fef2f2 !important;
+}
+
+.contraSelected {
+    border-color: #64748b;
+    background: #f8fafc !important;
+}
+
+.journalSelected {
+    border-color: #8b5cf6;
+    background: #f5f3ff !important;
+}
+
+.typeIcon {
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.typeLabel {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.activeType {
+    box-shadow: 0 0 0 2px #2563eb;
+    transform: translateY(-2px);
+    z-index: 2;
+}
+
+/* Tab Theme Highlights */
+.receipt.activeType {
+    background: #eff6ff;
+    border-color: #3b82f6;
+}
+
+.payment.activeType {
+    background: #fffbeb;
+    border-color: #f59e0b;
+}
+
+.sales.activeType {
+    background: #f0fdf4;
+    border-color: #22c55e;
+}
+
+.purchase.activeType {
+    background: #fef2f2;
+    border-color: #ef4444;
+}
+
+.contra.activeType {
+    background: #f8fafc;
+    border-color: #64748b;
+}
+
+.journal.activeType {
+    background: #f5f3ff;
+    border-color: #8b5cf6;
+}
+
+.workspaceBody {
+    background: white;
     padding: 1.5rem;
     border-radius: 12px;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    text-decoration: none;
-    transition: all 0.2s ease;
-    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    min-height: 500px;
 }
 
-.tab:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+.balanceGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
 }
 
-.tabIcon {
+.balanceCard {
+    padding: 1.5rem;
+    border-radius: 1rem;
+    color: white;
+}
+
+.balance {
     font-size: 2rem;
-    margin-bottom: 0.5rem;
+    font-weight: 800;
+    margin: 0.5rem 0;
 }
 
-.tabTitle {
+.cardType {
+    font-size: 0.75rem;
+    font-weight: 900;
+    opacity: 0.8;
+}
+
+.balanceLabel {
+    font-size: 0.85rem;
+    opacity: 0.9;
     font-weight: 600;
-    color: var(--foreground);
-    font-size: 1.1rem;
 }
 
-.tabDesc {
-    font-size: 0.8rem;
-    color: #94a3b8;
-    margin-top: 0.25rem;
+.cashCard {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
 }
 
-/* Specific Tab Colors on Hover */
-.receiptTab:hover {
-    border-color: #22c55e;
-    background: rgba(34, 197, 94, 0.05);
+.bankCard {
+    background: linear-gradient(135deg, #059669, #065f46);
 }
 
-.paymentTab:hover {
-    border-color: #ef4444;
-    background: rgba(239, 68, 68, 0.05);
+.upiCard {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
 }
 
-.salesTab:hover {
-    border-color: #3b82f6;
-    background: rgba(59, 130, 246, 0.05);
+.reportsFooter {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
 }
 
-.purchaseTab:hover {
-    border-color: #f59e0b;
-    background: rgba(245, 158, 11, 0.05);
+.reportLinks {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
 }
 
-.contraTab:hover {
-    border-color: #8b5cf6;
-    background: rgba(139, 92, 246, 0.05);
-}
-
-.footer {
-    margin-top: 3rem;
-    text-align: center;
-    border-top: 1px solid var(--border);
-    padding-top: 2rem;
-}
-
-.otherReportsBtn {
-    color: #94a3b8;
+.reportLink {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     text-decoration: none;
-    font-size: 0.9rem;
+    color: #475569;
+    font-weight: 700;
     padding: 0.5rem 1rem;
     border-radius: 6px;
-    transition: color 0.2s;
+    transition: background 0.2s;
 }
 
-.otherReportsBtn:hover {
-    color: var(--foreground);
-    background: var(--card-bg);
+.reportLink:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50vh;
+    font-weight: 700;
+    color: #64748b;
 }

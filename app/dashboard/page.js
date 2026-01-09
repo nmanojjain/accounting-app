@@ -45,10 +45,16 @@ export default function DashboardPage() {
 
     return (
         <div className={styles.container}>
-            <h1 className={styles.heading}>Companies for which you have access for data entry operations</h1>
+            <header className={styles.welcomeHeader}>
+                <h1 className={styles.heading}>Workspaces</h1>
+                <p className={styles.subheading}>Select a company to manage its ledgers and vouchers.</p>
+            </header>
+
             <div className={styles.grid}>
                 {companies.length === 0 ? (
-                    <p>No companies found. Please contact admin.</p>
+                    <div className={styles.emptyState}>
+                        <p>No companies found. Please contact admin for access.</p>
+                    </div>
                 ) : (
                     companies.map(company => (
                         <div
@@ -59,9 +65,9 @@ export default function DashboardPage() {
                             <div className={styles.cardIcon}>🏢</div>
                             <div className={styles.cardContent}>
                                 <h3>{company.name}</h3>
-                                <p>{company.financial_year}</p>
+                                <p>FY {company.financial_year}</p>
                             </div>
-                            <div className={styles.cardAction}>Enter &rarr;</div>
+                            <div className={styles.cardAction}>Enter</div>
                         </div>
                     ))
                 )}

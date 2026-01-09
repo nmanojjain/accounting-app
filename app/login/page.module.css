@@ -4,40 +4,58 @@
   justify-content: center;
   min-height: 100vh;
   padding: 1rem;
-  background: #001e80;
-  /* Deep Blue from image */
-  font-family: 'Inter', sans-serif;
+  background: var(--secondary);
+  font-family: var(--font-sans);
+  overflow: hidden;
+  position: relative;
+}
+
+.container::before {
+  content: '';
+  position: absolute;
+  width: 150%;
+  height: 150%;
+  background: radial-gradient(circle at center, var(--accent) 0%, transparent 60%);
+  opacity: 0.15;
+  filter: blur(80px);
 }
 
 .card {
-  background: transparent;
-  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 3rem 2rem;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
+  border-radius: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  z-index: 10;
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: 600;
+  font-size: 2.25rem;
+  font-weight: 800;
   text-align: center;
   margin-bottom: 0.5rem;
   color: white;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
   text-align: center;
-  color: #e0e7ff;
-  margin-bottom: 3rem;
-  font-size: 0.95rem;
+  color: #94a3b8;
+  margin-bottom: 2.5rem;
+  font-size: 1rem;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
   width: 100%;
 }
 
@@ -45,7 +63,7 @@
   background: rgba(239, 68, 68, 0.2);
   border: 1px solid #ef4444;
   color: white;
-  padding: 0.75rem;
+  padding: 0.875rem;
   border-radius: 1rem;
   margin-bottom: 1.5rem;
   font-size: 0.875rem;
@@ -53,13 +71,12 @@
   width: 100%;
 }
 
-/* Role Selection - Styled to fit */
 .roleSelection {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.25rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.4rem;
   border-radius: 2rem;
   width: 100%;
 }
@@ -67,13 +84,13 @@
 .radioLabel {
   flex: 1;
   text-align: center;
-  padding: 0.5rem;
+  padding: 0.6rem;
   border-radius: 2rem;
   cursor: pointer;
-  transition: all 0.2s;
-  color: #e0e7ff;
-  font-weight: 500;
-  font-size: 0.9rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
 .radioLabel input {
@@ -81,57 +98,57 @@
 }
 
 .radioLabel:has(input:checked) {
-  color: #001e80;
-  background: white;
-  font-weight: 600;
+  color: white;
+  background: var(--primary);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-/* Inputs are handled by Input component but we can target them if they have classes, 
-   or we rely on global styles. Assuming Input component uses standard inputs. 
-   We might need to adjust the Input component or add global overrides. 
-   For now, I'll assume I can't easily change the Input component's internal classes 
-   without seeing it, but I can try to target input elements inside .form */
-
-/* Global override for inputs in this form if possible, 
-   otherwise I'd need to edit Input.js. 
-   Let's assume standard HTML input styling here for safety. */
 .form input[type="email"],
 .form input[type="password"] {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
-  border-radius: 2rem;
-  /* Rounded pills */
-  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  padding: 1.125rem 1.5rem;
   font-size: 1rem;
   outline: none;
-  transition: border-color 0.2s;
-}
-
-.form input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s;
 }
 
 .form input:focus {
-  border-color: white;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-glow);
 }
 
-/* Button Styling */
 .form button {
-  background: #007bff;
-  /* Bright Blue */
+  background: var(--primary);
   color: white;
   border: none;
-  border-radius: 2rem;
-  padding: 1rem;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: 1rem;
+  padding: 1.125rem;
+  font-size: 1.125rem;
+  font-weight: 700;
   cursor: pointer;
   margin-top: 1rem;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
 }
 
-.form button:hover {
-  background: #0056b3;
+.form button:hover:not(:disabled) {
+  background: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.4);
+}
+
+.form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 2rem 1.5rem;
+    border-radius: 1.5rem;
+  }
 }

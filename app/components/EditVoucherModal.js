@@ -5,14 +5,17 @@ import Button from '@/components/Button';
 import { updateVoucher, cancelVoucher, getLedgers, createLedger } from '@/app/actions';
 import styles from '@/app/dashboard/vouchers/page.module.css'; // Reuse styles
 
-export default function EditVoucherModal({ voucher, companyId, onClose, onUpdate }) {
+export default function EditVoucherModal({ voucher, companyId, onClose, onSave }) {
     const [ledgers, setLedgers] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Voucher State
     const [voucherType, setVoucherType] = useState(voucher.voucher_type);
     const [voucherDate, setVoucherDate] = useState(voucher.date);
-    const [narration, setNarration] = useState(voucher.narration || '');
+    const [narration, setNarration] = useState(() => {
+        const n = voucher.narration || '';
+        return n.startsWith('CANCELLED:') ? n.replace(/^CANCELLED: /, '').replace(/ \(by .*\)$/, '') : n;
+    });
 
     // Header Account
     const [headerLedgerId, setHeaderLedgerId] = useState('');
@@ -176,21 +179,26 @@ export default function EditVoucherModal({ voucher, companyId, onClose, onUpdate
 
         const result = await updateVoucher(formData, entries);
         if (result.success) {
-            alert('Voucher Updated!');
-            onUpdate();
+            if (confirm('Voucher Updated Successfully! Exit editing mode?')) {
+                onSave();
+            }
         } else {
             alert(result.error);
         }
     };
 
     const handleCancelVoucher = async () => {
-        if (!confirm('⚠️ WARNING: Are you sure you want to CANCEL this voucher?\n\nThis will remove all financial entries and reverse the ledger balances. This action cannot be undone.\n\nClick OK to proceed with cancellation.')) return;
+        if (!confirm('⚠️ WARNING: Are you sure you want to CANCEL this voucher?\nThis will reverse all ledger balances.')) return;
+
+        setLoading(true);
         const result = await cancelVoucher(voucher.id);
+        setLoading(false);
+
         if (result.success) {
-            alert('Voucher Cancelled');
-            onUpdate();
+            alert('Voucher Cancelled Successfully');
+            onSave(); // Close and Refresh
         } else {
-            alert(result.error);
+            alert(`Cancellation Failed: ${result.error}`);
         }
     };
 
@@ -198,10 +206,12 @@ export default function EditVoucherModal({ voucher, companyId, onClose, onUpdate
 
     return (
         <div className={styles.modalOverlay} style={{ zIndex: 1000 }}>
-            <div className={styles.modal} style={{ width: '80%', maxWidth: '800px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                    <h3>Edit Voucher ({voucher.voucher_number})</h3>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>×</button>
+            <div className={styles.tallyModal}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', borderBottom: '2px solid #f1f5f9', paddingBottom: '15px' }}>
+                    <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: '#1e293b' }}>
+                        EDIT VOUCHER: {voucher.voucher_number}
+                    </h2>
+                    <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', width: '36px', height: '36px', borderRadius: '50%', fontSize: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#64748b' }}>×</button>
                 </div>
 
                 <form onSubmit={handleSubmit} className={styles.form}>
@@ -209,7 +219,7 @@ export default function EditVoucherModal({ voucher, companyId, onClose, onUpdate
                         <div className={styles.row}>
                             <div className={styles.field}>
                                 <label>Voucher Type</label>
-                                <input value={voucherType} disabled className={styles.input} />
+                                <input value={voucherType.toUpperCase()} disabled className={styles.input} style={{ backgroundColor: '#f8fafc', color: '#64748b' }} />
                             </div>
                             <div className={styles.field}>
                                 <label>Date</label>
@@ -241,7 +251,8 @@ export default function EditVoucherModal({ voucher, companyId, onClose, onUpdate
                         <h3>Particulars</h3>
                         {rows.map((row, index) => (
                             <div key={index} className={styles.entryRow}>
-                                <div className={styles.field} style={{ flex: 2 }}>
+                                <div className={styles.field} style={{ flex: 3 }}>
+                                    <label>Ledger Account</label>
                                     <select
                                         value={row.ledger_id}
                                         onChange={(e) => handleRowChange(index, 'ledger_id', e.target.value)}
@@ -256,20 +267,24 @@ export default function EditVoucherModal({ voucher, companyId, onClose, onUpdate
                                         ))}
                                     </select>
                                 </div>
-                                <div className={styles.field} style={{ flex: 1, minWidth: '120px' }}>
+                                <div className={styles.field} style={{ flex: 1, minWidth: '150px' }}>
+                                    <label>Amount (₹)</label>
                                     <input
                                         type="number"
-                                        placeholder="Amount"
+                                        placeholder="0.00"
                                         value={row.amount}
                                         onChange={(e) => handleRowChange(index, 'amount', e.target.value)}
                                         className={styles.input}
+                                        style={{ textAlign: 'right', fontWeight: 800 }}
                                         required
                                     />
                                 </div>
-                                <button type="button" onClick={() => removeRow(index)} className={styles.removeBtn}>×</button>
+                                <button type="button" onClick={() => removeRow(index)} className={styles.removeBtn} title="Remove Row">×</button>
                             </div>
                         ))}
-                        <Button type="button" onClick={addRow} variant="secondary" size="small">+ Add Line</Button>
+                        <div style={{ marginTop: '10px' }}>
+                            <Button type="button" onClick={addRow} variant="secondary" size="small">+ Add New Line</Button>
+                        </div>
                     </div>
 
                     <div className={styles.footerSection}>
@@ -280,27 +295,33 @@ export default function EditVoucherModal({ voucher, companyId, onClose, onUpdate
                                 onChange={e => setNarration(e.target.value)}
                                 className={styles.textarea}
                                 rows="2"
+                                placeholder="Change narration..."
                             ></textarea>
                         </div>
-                        <div className={styles.totalRow} style={{ justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
+
+                        <div className={styles.totalRow} style={{ justifyContent: 'space-between', alignItems: 'center', marginTop: '30px' }}>
                             <Button
                                 type="button"
                                 onClick={handleCancelVoucher}
-                                style={{ backgroundColor: '#e74c3c', width: '160px' }}
+                                style={{ backgroundColor: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', fontWeight: 800 }}
                             >
                                 Cancel Voucher
                             </Button>
 
-                            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                                <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
-                                    Total: {rows.reduce((sum, r) => sum + Number(r.amount), 0).toFixed(2)}
-                                </span>
-                                <Button
+                            <div style={{ display: 'flex', gap: '25px', alignItems: 'center' }}>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Total Amount</div>
+                                    <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#1e293b' }}>
+                                        ₹ {rows.reduce((sum, r) => sum + Number(r.amount), 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    </div>
+                                </div>
+                                <button
                                     type="submit"
-                                    style={{ width: '160px' }}
+                                    className={styles.tallySubmitBtn}
+                                    style={{ width: '200px' }}
                                 >
                                     Update Voucher
-                                </Button>
+                                </button>
                             </div>
                         </div>
                     </div>
