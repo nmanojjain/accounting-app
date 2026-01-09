@@ -141,8 +141,18 @@ function VouchersContent() {
         switch (voucherType) {
             case 'receipt': return ledgers.filter(l => !isCashOrBank(l));
             case 'payment': return ledgers.filter(l => !isCashOrBank(l));
-            case 'sales': return ledgers.filter(l => l.group_name === 'Sales Accounts');
-            case 'purchase': return ledgers.filter(l => l.group_name === 'Purchase Accounts');
+            case 'sales': return ledgers.filter(l =>
+                l.group_name === 'Sales Accounts' ||
+                l.group_name === 'Direct Incomes' ||
+                l.group_name === 'Indirect Incomes' ||
+                l.group_name === 'Duties & Taxes'
+            );
+            case 'purchase': return ledgers.filter(l =>
+                l.group_name === 'Purchase Accounts' ||
+                l.group_name === 'Direct Expenses' ||
+                l.group_name === 'Indirect Expenses' ||
+                l.group_name === 'Duties & Taxes'
+            );
             case 'contra': return ledgers.filter(l => filterCash(l));
             default: return ledgers;
         }

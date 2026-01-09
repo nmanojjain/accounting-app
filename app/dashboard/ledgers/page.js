@@ -58,11 +58,7 @@ export default function LedgersPage() {
     };
 
     const fetchLedgers = async (companyId) => {
-        const { data } = await supabase
-            .from('ledgers')
-            .select('*')
-            .eq('company_id', companyId)
-            .order('name');
+        const data = await getLedgers(companyId);
         if (data) setLedgers(data);
     };
 

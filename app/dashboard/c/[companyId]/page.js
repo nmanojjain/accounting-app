@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import styles from './page.module.css';
 import Link from 'next/link';
 import VoucherEntryForm from '@/app/components/VoucherEntryForm';
+import { getLedgers } from '@/app/actions';
 
 export default function CompanyDashboardPage() {
     const { companyId } = useParams();
@@ -55,19 +56,23 @@ export default function CompanyDashboardPage() {
         const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
         const isAdmin = userData?.role === 'admin';
 
-        // Fetch Balances
-        const cashQuery = supabase.from('ledgers').select('current_balance, name').eq('company_id', companyId).eq('group_name', 'Cash-in-hand');
-        if (!isAdmin) cashQuery.eq('assigned_operator_id', user.id);
-        else cashQuery.is('assigned_operator_id', null).limit(1);
+        // Fetch All Ledgers for Balances securely
+        const allLedgers = await getLedgers(companyId);
 
-        const { data: cashLedger } = await cashQuery.single();
+        // Find Cash Ledger
+        const cashLedger = allLedgers.find(l =>
+            l.group_name === 'Cash-in-hand' &&
+            (isAdmin ? !l.assigned_operator_id : l.assigned_operator_id === user.id)
+        );
         if (cashLedger) setCashBalance(cashLedger.current_balance);
 
-        const { data: bankData } = await supabase.from('ledgers').select('current_balance, name').eq('company_id', companyId).eq('group_name', 'Bank Accounts').limit(2);
-        setBankBalances(bankData || []);
+        // Find Bank Balances (limit 2 for UI)
+        const banks = allLedgers.filter(l => l.group_name === 'Bank Accounts').slice(0, 2);
+        setBankBalances(banks);
 
-        const { data: upiData } = await supabase.from('ledgers').select('current_balance, name').eq('company_id', companyId).ilike('name', '%UPI%');
-        setUpiBalances(upiData || []);
+        // Find UPI Balances
+        const upis = allLedgers.filter(l => l.name.toUpperCase().includes('UPI'));
+        setUpiBalances(upis);
 
         setLoading(false);
     };
