@@ -612,6 +612,10 @@
 }
 
 @media (max-width: 768px) {
+    .tallyContainer {
+        padding: 0.75rem;
+    }
+
     .tallyHeader {
         flex-direction: column;
         align-items: center;
@@ -625,5 +629,49 @@
     .tallyEntryRow {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .amountFieldContainer,
+    .labelAmount {
+        width: 100px;
+    }
+
+    .labelAmount {
+        padding-right: 0.5rem;
+    }
+
+    .tallyEntryRowCompact,
+    .entriesLabels {
+        gap: 0.25rem;
+    }
+
+    .tallyInputCompact {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .vDateGroup input {
+        width: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .amountFieldContainer,
+    .labelAmount {
+        width: 85px;
+    }
+
+    .tallyTotalBlinking {
+        font-size: 1rem;
+    }
+
+    .actionButtonsCompact button {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+    }
+
+    .labelAmount {
+        padding-right: 0.25rem;
     }
 }
