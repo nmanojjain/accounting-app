@@ -98,14 +98,6 @@ export default function CompanyDashboardPage() {
                     <h1>{company.name}</h1>
                     <span className={styles.fyBadge}>FY {company.financial_year}</span>
                 </div>
-                <div className={styles.headerActions}>
-                    <button
-                        className={`${styles.toggleBtn} ${view === 'overview' ? styles.activeToggle : ''}`}
-                        onClick={() => setView(view === 'entry' ? 'overview' : 'entry')}
-                    >
-                        {view === 'entry' ? '📊 View Dashboard' : '➕ New Entry'}
-                    </button>
-                </div>
             </header>
 
             {/* Quick Access Tabs (Top Row) */}
@@ -136,7 +128,7 @@ export default function CompanyDashboardPage() {
                             <div className={`${styles.balanceCard} ${styles.cashCard}`}>
                                 <span className={styles.cardType}>CASH</span>
                                 <p className={styles.balance}>₹ {Number(cashBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
-                                <span className={styles.balanceLabel}>Current User Balance</span>
+                                <span className={styles.balanceLabel}>User Balance</span>
                             </div>
                             {bankBalances.map(bank => (
                                 <div key={bank.name} className={`${styles.balanceCard} ${styles.bankCard}`}>
@@ -153,24 +145,25 @@ export default function CompanyDashboardPage() {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Report Shortcuts moved here for mobile-first single page view */}
+                        <div className={styles.quickReports}>
+                            <Link href={`/dashboard/reports?companyId=${companyId}`} className={styles.reportBtn}>
+                                <span className={styles.btnIcon}>📖</span>
+                                <span>Day Book</span>
+                            </Link>
+                            <Link href={`/dashboard/ledgers?companyId=${companyId}`} className={styles.reportBtn}>
+                                <span className={styles.btnIcon}>📂</span>
+                                <span>All Ledgers</span>
+                            </Link>
+                            <Link href={`/dashboard/reports?type=ledger&companyId=${companyId}`} className={styles.reportBtn}>
+                                <span className={styles.btnIcon}>📊</span>
+                                <span>Statement</span>
+                            </Link>
+                        </div>
                     </div>
                 )}
             </main>
-
-            {/* Persistent Report Shortcuts (Bottom) */}
-            <footer className={styles.reportsFooter}>
-                <div className={styles.reportLinks}>
-                    <Link href={`/dashboard/reports?companyId=${companyId}`} className={styles.reportLink}>
-                        <span className={styles.linkIcon}>📖</span> Day Book
-                    </Link>
-                    <Link href={`/dashboard/ledgers?companyId=${companyId}`} className={styles.reportLink}>
-                        <span className={styles.linkIcon}>📂</span> All Ledgers
-                    </Link>
-                    <Link href={`/dashboard/reports?type=ledger&companyId=${companyId}`} className={styles.reportLink}>
-                        <span className={styles.linkIcon}>📊</span> Account Statement
-                    </Link>
-                </div>
-            </footer>
         </div>
     );
 }

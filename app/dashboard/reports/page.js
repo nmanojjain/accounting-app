@@ -209,7 +209,7 @@ export default function ReportsPage() {
 
     return (
         <div className={styles.container}>
-            <div className={styles.headerRow}>
+            <div className={`${styles.headerRow} stack-on-mobile`}>
                 <div className={styles.title}>
                     <select value={reportType} onChange={e => setReportType(e.target.value)} className={styles.reportSelector}>
                         <option value="daybook">Day Book</option>
@@ -303,7 +303,7 @@ export default function ReportsPage() {
                     <>
                         <div className={`${styles.tableContainer} ${fromDate === toDate ? styles.singleDay : ''}`}>
                             {reportType === 'daybook' && (
-                                <table className={styles.table}>
+                                <table className={`${styles.table} responsive-table`}>
                                     <thead>
                                         <tr>
                                             <th className={styles.colDate}>Date</th>
@@ -406,7 +406,7 @@ export default function ReportsPage() {
                             )}
 
                             {reportType === 'ledger' && (
-                                <table className={styles.table}>
+                                <table className={`${styles.table} responsive-table`}>
                                     <thead>
                                         <tr>
                                             <th className={styles.colDate}>Date</th>

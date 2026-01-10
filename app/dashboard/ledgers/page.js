@@ -122,9 +122,9 @@ export default function LedgersPage() {
 
     return (
         <div>
-            <div className={styles.header}>
+            <div className={`${styles.header} stack-on-mobile`}>
                 <h1 className={styles.title}>Ledger's List</h1>
-                <div className={styles.controls}>
+                <div className={`${styles.controls} stack-on-mobile`}>
                     {!(params?.companyId || searchParams.get('companyId')) && (
                         <select
                             value={selectedCompany}
@@ -180,6 +180,7 @@ export default function LedgersPage() {
                                 </optgroup>
                                 <optgroup label="Expenses">
                                     <option value="Purchase Accounts">Purchase Accounts</option>
+                                    <option value="Direct Expenses">Direct Expenses</option>
                                     <option value="Indirect Expenses">Indirect Expenses</option>
                                 </optgroup>
                             </select>

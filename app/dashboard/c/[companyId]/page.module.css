@@ -267,6 +267,40 @@
     color: #1e293b;
 }
 
+.quickReports {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.reportBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem;
+    background: white;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--foreground);
+    font-weight: 700;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-sm);
+}
+
+.reportBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+}
+
+.btnIcon {
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+}
+
 .loading {
     display: flex;
     justify-content: center;
@@ -274,4 +308,77 @@
     height: 50vh;
     font-weight: 700;
     color: #64748b;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+    .container {
+        padding: 0.75rem;
+    }
+
+    .workspaceHeader {
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .workspaceHeader h1 {
+        font-size: 1.25rem;
+    }
+
+    .topTabs {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .typeBtn {
+        padding: 0.5rem;
+    }
+
+    .typeIcon {
+        font-size: 1rem;
+        margin-bottom: 0.1rem;
+    }
+
+    .typeLabel {
+        font-size: 0.65rem;
+    }
+
+    .workspaceBody {
+        padding: 1rem;
+        min-height: auto;
+    }
+
+    .balanceGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .balanceCard {
+        padding: 1rem;
+    }
+
+    .balance {
+        font-size: 1.25rem;
+    }
+
+    .cardType {
+        font-size: 0.65rem;
+    }
+
+    .balanceLabel {
+        font-size: 0.7rem;
+    }
+
+    .quickReports {
+        gap: 0.5rem;
+    }
+
+    .reportBtn {
+        padding: 0.5rem;
+    }
+
+    .btnIcon {
+        font-size: 1rem;
+    }
 }

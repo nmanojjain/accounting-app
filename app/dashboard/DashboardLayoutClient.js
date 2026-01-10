@@ -180,7 +180,9 @@ export default function DashboardLayoutClient({ children }) {
                     </div>
                 </header>
                 <div className={styles.content}>
-                    {children}
+                    <div className="container">
+                        {children}
+                    </div>
                 </div>
                 <SyncManager />
             </main>

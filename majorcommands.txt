@@ -1,0 +1,9 @@
+1) docker ps -a
+2) docker ps
+
+curl -vk http://app.mimitc.com/
+curl -vk https://app.mimitc.com/
+
+docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}'
+
+	
