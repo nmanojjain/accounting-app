@@ -441,10 +441,6 @@ export async function createLedger(formData) {
     return { success: true };
 }
 
-if (error) return { error: error.message };
-return { success: true };
-}
-
 export async function assignCompany(userId, companyId) {
     const supabase = await createAuthClient();
     const adminCheck = await checkAdmin(supabase);
@@ -783,40 +779,7 @@ export async function deleteLedger(ledgerId) {
     return { success: true };
 }
 
-export async function assignCompany(userId, companyId) {
-    const supabase = await createAuthClient();
 
-    // Strict Admin Check
-    const adminCheck = await checkAdmin(supabase);
-    if (adminCheck.error) return { error: adminCheck.error };
-
-    const { error } = await supabase
-        .from('user_company_access')
-        .insert([{ user_id: userId, company_id: companyId }]);
-
-    if (error) {
-        if (error.code === '23505') return { error: 'User already assigned to this company.' };
-        return { error: error.message };
-    }
-    return { success: true };
-}
-
-export async function revokeCompany(userId, companyId) {
-    const supabase = await createAuthClient();
-
-    // Strict Admin Check
-    const adminCheck = await checkAdmin(supabase);
-    if (adminCheck.error) return { error: adminCheck.error };
-
-    const { error } = await supabase
-        .from('user_company_access')
-        .delete()
-        .eq('user_id', userId)
-        .eq('company_id', companyId);
-
-    if (error) return { error: error.message };
-    return { success: true };
-}
 
 // --- Admin Features: Edit/Delete ---
 

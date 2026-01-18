@@ -157,10 +157,7 @@ export default function UsersPage() {
         setSyncing(false);
     };
 
-    const handleEdit = (user) => {
-        setEditingUser(user);
-        setShowForm(true);
-    };
+
 
     const cancelForm = () => {
         setShowForm(false);
