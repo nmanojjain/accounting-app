@@ -441,7 +441,57 @@ export async function createLedger(formData) {
     return { success: true };
 }
 
-// ... (createVoucher, transferCash, deleteLedger, assignCompany, revokeCompany, deleteCompany, updateCompany omitted for brevity if unchanged)
+if (error) return { error: error.message };
+return { success: true };
+}
+
+export async function assignCompany(userId, companyId) {
+    const supabase = await createAuthClient();
+    const adminCheck = await checkAdmin(supabase);
+    if (adminCheck.error) return { error: adminCheck.error };
+
+    const adminClient = getAdminClient();
+    const { error } = await adminClient
+        .from('user_company_access')
+        .insert([{ user_id: userId, company_id: companyId }]);
+
+    if (error) {
+        if (error.code === '23505') return { success: true }; // Already assigned
+        return { error: error.message };
+    }
+    return { success: true };
+}
+
+export async function revokeCompany(userId, companyId) {
+    const supabase = await createAuthClient();
+    const adminCheck = await checkAdmin(supabase);
+    if (adminCheck.error) return { error: adminCheck.error };
+
+    const adminClient = getAdminClient();
+    const { error } = await adminClient
+        .from('user_company_access')
+        .delete()
+        .eq('user_id', userId)
+        .eq('company_id', companyId);
+
+    if (error) return { error: error.message };
+    return { success: true };
+}
+
+export async function getCompanyAssignments(userId) {
+    const supabase = await createAuthClient();
+    const adminCheck = await checkAdmin(supabase);
+    if (adminCheck.error) return { error: adminCheck.error };
+
+    const adminClient = getAdminClient();
+    const { data } = await adminClient
+        .from('user_company_access')
+        .select('company_id')
+        .eq('user_id', userId);
+
+    return data?.map(d => d.company_id) || [];
+}
+// ... (createVoucher, transferCash, deleteLedger...
 
 export async function updateLedger(formData) {
     const supabase = await createAuthClient();

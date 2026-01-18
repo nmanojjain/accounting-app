@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
-import { createOperator, updateOperator, syncUsers } from '@/app/actions';
+import { createOperator, updateOperator, syncUsers, getAccessibleCompanies, getCompanyAssignments, assignCompany, revokeCompany } from '@/app/actions';
 import styles from './page.module.css';
 
 export default function UsersPage() {
@@ -15,6 +15,9 @@ export default function UsersPage() {
     const [syncing, setSyncing] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const router = useRouter();
+
+    const [companies, setCompanies] = useState([]);
+    const [userAssignments, setUserAssignments] = useState(new Set());
 
     useEffect(() => {
         checkAccess();
@@ -28,22 +31,51 @@ export default function UsersPage() {
                 router.push('/dashboard');
                 return;
             }
+            fetchCompanies();
         }
         fetchUsers();
+    };
+
+    const fetchCompanies = async () => {
+        const comps = await getAccessibleCompanies();
+        setCompanies(comps || []);
     };
 
     const fetchUsers = async () => {
         const { data, error } = await supabase
             .from('users')
             .select('*')
-            // .eq('role', 'operator') // Show all users
             .order('created_at', { ascending: false });
 
         if (data) setUsers(data);
         setLoading(false);
     };
 
+    const handleEdit = async (user) => {
+        setEditingUser(user);
+        setShowForm(true);
+        // Fetch assignments
+        const assignments = await getCompanyAssignments(user.id);
+        setUserAssignments(new Set(assignments));
+    };
+
+    const handleToggleAssignment = async (companyId, currentChecked) => {
+        if (!editingUser) return;
+
+        // Optimistic Update
+        const newSet = new Set(userAssignments);
+        if (currentChecked) {
+            newSet.delete(companyId);
+            await revokeCompany(editingUser.id, companyId);
+        } else {
+            newSet.add(companyId);
+            await assignCompany(editingUser.id, companyId);
+        }
+        setUserAssignments(newSet);
+    };
+
     const handleSubmit = async (formData) => {
+        // ... (existing logic)
         if (editingUser) {
             formData.append('id', editingUser.id);
             const result = await updateOperator(formData);
@@ -66,6 +98,52 @@ export default function UsersPage() {
             }
         }
     };
+
+    // ... (handleSync, cancelForm) -> NO, I need to keep them or Rewrite. 
+    // Wait, replace_file_content replaces a block.
+    // I need to be careful not to delete handleSync.
+    // I will target up to handleSubmit and then handle the rest separately or in one big block?
+    // The previous block was huge.
+    // I'll stick to a safe replacement.
+
+    // ...
+    // Let's replace from `useEffect` to `handleSubmit` start.
+
+    // ...
+    // Wait, adding UI checkboxes inside the form is another edit.
+    // I should doLogic first.
+
+    // ... 
+
+    // Actually, I'll rewrite the whole component body to be safe again.
+    // Use `view_file` content as base.
+
+    /* (Logic rewritten above) */
+
+    // ... inside return ...
+    /*
+        <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Assigned Workspaces</label>
+            <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '0.5rem' }}>
+                {companies.map(c => (
+                    <div key={c.id} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <input 
+                            type="checkbox" 
+                            id={`comp-${c.id}`} 
+                            checked={userAssignments.has(c.id)} 
+                            onChange={(e) => handleToggleAssignment(c.id, userAssignments.has(c.id))}
+                            disabled={!editingUser} // Only allow changing assignments for existing users for now (simple UX)
+                            style={{ marginRight: '0.5rem' }}
+                        />
+                        <label htmlFor={`comp-${c.id}`} style={{ cursor: 'pointer' }}>{c.name}</label>
+                    </div>
+                ))}
+                {companies.length === 0 && <p style={{ color: '#64748b', fontSize: '0.8rem' }}>No workspaces found.</p>}
+            </div>
+            {!editingUser && <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.25rem' }}>Create user first to assign workspaces.</p>}
+        </div>
+    */
+
 
     const handleSync = async () => {
         setSyncing(true);
@@ -133,6 +211,27 @@ export default function UsersPage() {
                                 <option value="operator">Operator (Restricted)</option>
                                 <option value="admin">Admin (Full Access)</option>
                             </select>
+                        </div>
+
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Assigned Workspaces</label>
+                            <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '0.5rem', background: '#f8fafc' }}>
+                                {companies.map(c => (
+                                    <div key={c.id} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.25rem' }}>
+                                        <input
+                                            type="checkbox"
+                                            id={`comp-${c.id}`}
+                                            checked={userAssignments.has(c.id)}
+                                            onChange={(e) => handleToggleAssignment(c.id, userAssignments.has(c.id))}
+                                            disabled={!editingUser}
+                                            style={{ marginRight: '0.5rem' }}
+                                        />
+                                        <label htmlFor={`comp-${c.id}`} style={{ cursor: 'pointer', fontSize: '0.9rem' }}>{c.name}</label>
+                                    </div>
+                                ))}
+                                {companies.length === 0 && <p style={{ color: '#64748b', fontSize: '0.8rem' }}>No workspaces found.</p>}
+                            </div>
+                            {!editingUser && <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>Create user first to assign workspaces.</p>}
                         </div>
 
                         <Input
