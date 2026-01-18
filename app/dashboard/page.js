@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { getAccessibleCompanies } from '@/app/actions';
 import styles from './page.module.css';
 
 export default function DashboardPage() {
@@ -10,30 +11,22 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
+    const [user, setUser] = useState(null);
+
     useEffect(() => {
-        fetchCompanies();
+        fetchData();
     }, []);
 
-    const fetchCompanies = async () => {
+    const fetchData = async () => {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        // Check if admin
-        const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
-
-        let query = supabase.from('companies').select('*');
-
-        // If not admin, filter by access
-        if (userData?.role !== 'admin') {
-            // This logic depends on RLS, but let's be explicit if needed or rely on RLS
-            // The RLS policy "Operator view companies" uses user_company_access
-            // So a simple select('*') should work if RLS is on.
+        if (!user) {
+            router.push('/login');
+            return;
         }
+        setUser(user);
 
-        const { data, error } = await query;
-
+        const data = await getAccessibleCompanies();
         if (data) setCompanies(data);
-        if (error) console.error(error);
         setLoading(false);
     };
 
@@ -46,8 +39,11 @@ export default function DashboardPage() {
     return (
         <div className={styles.container}>
             <header className={styles.welcomeHeader}>
-                <h1 className={styles.heading}>Workspaces</h1>
-                <p className={styles.subheading}>Select a company to manage its ledgers and vouchers.</p>
+                <div className={styles.headerInfo}>
+                    <p className={styles.welcomeText}>Welcome back,</p>
+                    <h1 className={styles.heading}>{user?.email ? user.email.split('@')[0] : 'User'}</h1>
+                </div>
+                <p className={styles.subheading}>Select a workspace to start managing your accounting records.</p>
             </header>
 
             <div className={styles.grid}>

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { createVoucher, getLedgers, createLedger, getNextVoucherNumber } from '@/app/actions';
 import { saveVoucherOffline } from '@/lib/syncManager';
 import styles from '@/app/dashboard/vouchers/page.module.css';
+import LedgerSelector from './LedgerSelector';
 
 export default function VoucherEntryForm({ companyId, type, onExit, userToken }) {
     const [ledgers, setLedgers] = useState([]);
@@ -21,6 +22,8 @@ export default function VoucherEntryForm({ companyId, type, onExit, userToken })
     const [showCreateLedger, setShowCreateLedger] = useState(false);
     const [newLedgerName, setNewLedgerName] = useState('');
     const [newLedgerGroup, setNewLedgerGroup] = useState('Sundry Debtors');
+    const [isSuccess, setIsSuccess] = useState(false);
+    const [lastSavedNo, setLastSavedNo] = useState('');
     const firstAmountRef = useRef(null);
 
     useEffect(() => {
@@ -67,8 +70,8 @@ export default function VoucherEntryForm({ companyId, type, onExit, userToken })
             case 'contra':
                 return ledgers.filter(isCashOrBank);
             case 'sales':
-                // Header for Sales can be Party or Cash/Bank
-                return ledgers.filter(l => l.group_name === 'Sundry Debtors' || isCashOrBank(l));
+                // Header for Sales is now the Sales Account (Credit side)
+                return ledgers.filter(l => l.group_name === 'Sales Accounts' || l.group_name === 'Direct Incomes');
             case 'purchase':
                 // Header for Purchase can be Party or Cash/Bank
                 return ledgers.filter(l => l.group_name === 'Sundry Creditors' || isCashOrBank(l));
@@ -103,11 +106,10 @@ export default function VoucherEntryForm({ companyId, type, onExit, userToken })
                     l.group_name === 'Current Assets'
                 );
             case 'sales':
-                // Sales entries: Credit Sales Account and Duties/Taxes
+                // Sales rows are now the Debits: Parties (Sundry Debtors) or Cash/Bank
                 return ledgers.filter(l =>
-                    l.group_name === 'Sales Accounts' ||
-                    l.group_name === 'Direct Incomes' ||
-                    l.group_name === 'Duties & Taxes'
+                    l.group_name === 'Sundry Debtors' ||
+                    isCashOrBank(l)
                 );
             case 'purchase':
                 // Purchase entries: Debit Purchase Account, Expenses, and Duties/Taxes
@@ -131,10 +133,8 @@ export default function VoucherEntryForm({ companyId, type, onExit, userToken })
         if (!loading && ledgers.length > 0) {
             const isFresh = rows.length === 1 && !rows[0].ledger_id;
             if (isFresh) {
-                if (type === 'sales') {
-                    const sl = ledgers.find(l => l.group_name === 'Sales Accounts');
-                    if (sl) setRows([{ ledger_id: sl.id, amount: '', search: sl.name, isAuto: true }]);
-                } else if (type === 'purchase') {
+                // Auto-fill logic mostly for Purchase now as Sales is inverted
+                if (type === 'purchase') {
                     const pl = ledgers.find(l => l.group_name === 'Purchase Accounts');
                     if (pl) setRows([{ ledger_id: pl.id, amount: '', search: pl.name, isAuto: true }]);
                 }
@@ -145,10 +145,10 @@ export default function VoucherEntryForm({ companyId, type, onExit, userToken })
     const handleRowChange = (index, field, value) => {
         const newRows = [...rows];
         if (field === 'search') {
-            newRows[index].search = value;
-            newRows[index].isAuto = false; // User manually typed, remove auto flag
-            const match = getRowLedgers().find(l => l.name === value);
-            if (match) newRows[index].ledger_id = match.id;
+            // value is the ledger object itself now
+            newRows[index].search = value.name;
+            newRows[index].ledger_id = value.id;
+            newRows[index].isAuto = false;
         } else {
             newRows[index][field] = value;
         }
@@ -159,7 +159,8 @@ export default function VoucherEntryForm({ companyId, type, onExit, userToken })
         setHeaderLedgerId(match.id);
         setHeaderLedgerSearch(match.name);
         // If it's Sales/Purchase and the first row is already auto-filled, move focus directly to the amount
-        if ((type === 'sales' || type === 'purchase') && rows[0]?.isAuto) {
+        // With Sales inversion, rows[0] is not auto-filled anymore, so this only mainly applies to Purchase
+        if ((type === 'purchase') && rows[0]?.isAuto) {
             setTimeout(() => firstAmountRef.current?.focus(), 50);
         }
     };
@@ -196,14 +197,16 @@ export default function VoucherEntryForm({ companyId, type, onExit, userToken })
             entries.push({ ledger_id: headerLedgerId, debit: 0, credit: totalAmount });
             validRows.forEach(r => entries.push({ ledger_id: r.ledger_id, debit: Number(r.amount), credit: 0 }));
         } else if (type === 'sales') {
-            entries.push({ ledger_id: headerLedgerId, debit: totalAmount, credit: 0 });
-            validRows.forEach(r => entries.push({ ledger_id: r.ledger_id, debit: 0, credit: Number(r.amount) }));
+            // Sales Logic INVERTED: Header is CR (Sales A/c), Rows are DR (Parties)
+            entries.push({ ledger_id: headerLedgerId, debit: 0, credit: totalAmount });
+            validRows.forEach(r => entries.push({ ledger_id: r.ledger_id, debit: Number(r.amount), credit: 0 }));
         } else if (type === 'purchase') {
             entries.push({ ledger_id: headerLedgerId, debit: 0, credit: totalAmount });
             validRows.forEach(r => entries.push({ ledger_id: r.ledger_id, debit: Number(r.amount), credit: 0 }));
         } else if (type === 'contra') {
             entries.push({ ledger_id: headerLedgerId, debit: 0, credit: totalAmount });
             validRows.forEach(r => entries.push({ ledger_id: r.ledger_id, debit: Number(r.amount), credit: 0 }));
+
         } else if (type === 'journal') {
             // Simplify journal for now: Handled slightly differently in Tally but let's keep the core
             // Just one Dr and one Cr for now in this restricted UI
@@ -237,14 +240,41 @@ export default function VoucherEntryForm({ companyId, type, onExit, userToken })
 
         const result = await createVoucher(formData, entries);
         if (result.success) {
-            alert('Voucher Saved!');
-            setRows([{ ledger_id: '', amount: '', search: '' }]);
-            setNarration('');
-            updateNextNo();
+            // alert('Voucher Saved!'); // Removed blocking alert
+            setLastSavedNo(nextNo);
+            setIsSuccess(true);
+            // Don't reset yet, wait for user to click "New Entry"
         } else alert(result.error);
     };
 
-    if (loading) return <div>Loading...</div>;
+    const handleNewEntry = () => {
+        setIsSuccess(false);
+        setRows([{ ledger_id: '', amount: '', search: '', isAuto: false }]);
+        setNarration('');
+        loadLedgers(companyId); // Reload ledgers to update balances if needed
+        updateNextNo();
+    }; if (loading) return <div>Loading...</div>;
+
+    if (isSuccess) {
+        return (
+            <div className={styles.successContainer}>
+                <div className={styles.successIcon}>✅</div>
+                <h2 className={styles.successTitle}>Entry Saved!</h2>
+                <div className={styles.successDetails}>
+                    <p>Voucher No: <strong>{lastSavedNo}</strong></p>
+                    <p>Type: <strong>{type.toUpperCase()}</strong></p>
+                </div>
+                <div className={styles.successActions}>
+                    <button onClick={handleNewEntry} className={styles.tallyAcceptBtn} autoFocus>
+                        New Entry (Enter)
+                    </button>
+                    <button onClick={onExit} className={styles.tallyExitBtn}>
+                        Exit to Dashboard
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.tallyContainer}>
@@ -271,43 +301,15 @@ export default function VoucherEntryForm({ companyId, type, onExit, userToken })
                 <div className={styles.tallyBodyCompact}>
                     {/* Account Selection (Handy Search for Parties in Sales/Purchase) */}
                     <div className={styles.accountSelection}>
-                        <label>Account :</label>
-                        {(type === 'receipt' || type === 'payment' || type === 'contra') ? (
-                            <select
-                                value={headerLedgerId}
-                                onChange={e => {
-                                    const match = ledgers.find(l => l.id === e.target.value);
-                                    if (match) handleHeaderMatch(match);
-                                }}
-                                className={styles.tallyInputCompact}
-                                autoFocus
-                                required
-                            >
-                                <option value="">Select Cash/Bank...</option>
-                                {getHeaderLedgers().map(l => (
-                                    <option key={l.id} value={l.id}>{l.name}</option>
-                                ))}
-                            </select>
-                        ) : (
-                            <div style={{ flex: 1 }}>
-                                <input
-                                    list="header-ledgers"
-                                    value={headerLedgerSearch}
-                                    onChange={e => {
-                                        setHeaderLedgerSearch(e.target.value);
-                                        const match = getHeaderLedgers().find(l => l.name === e.target.value);
-                                        if (match) handleHeaderMatch(match);
-                                    }}
-                                    className={styles.tallyInputCompact}
-                                    placeholder="Search Party / Cash / Bank..."
-                                    autoFocus
-                                    required
-                                />
-                                <datalist id="header-ledgers">
-                                    {getHeaderLedgers().map(l => <option key={l.id} value={l.name} />)}
-                                </datalist>
-                            </div>
-                        )}
+                        <LedgerSelector
+                            label="Account :"
+                            value={headerLedgerSearch}
+                            ledgers={getHeaderLedgers()}
+                            onSelect={handleHeaderMatch}
+                            placeholder={(type === 'sales') ? "Select Sales Account..." : (type === 'receipt' || type === 'payment' || type === 'contra') ? "Select Cash/Bank..." : "Search Party / Cash / Bank..."}
+                            autoFocus={true}
+                            className={styles.ledgerSelector}
+                        />
                     </div>
 
                     {/* Entries Section with Separate Labels */}
@@ -322,18 +324,14 @@ export default function VoucherEntryForm({ companyId, type, onExit, userToken })
                             {rows.map((row, index) => (
                                 <div key={index} className={styles.tallyEntryRowCompact}>
                                     <div className={styles.particularsField}>
-                                        <input
-                                            list={`row-ledgers-${index}`}
+                                        <LedgerSelector
                                             value={row.search}
-                                            onChange={e => handleRowChange(index, 'search', e.target.value)}
-                                            className={`${styles.tallyInputCompact} ${row.isAuto ? styles.autoSelectedLedger : ''}`}
+                                            ledgers={getRowLedgers()}
+                                            onSelect={(l) => handleRowChange(index, 'search', l)}
                                             placeholder="Particulars"
-                                            readOnly={row.isAuto && index === 0}
-                                            required
+                                            className={`${styles.ledgerSelector} ${row.isAuto ? styles.autoSelectedLedger : ''}`}
+                                            autoFocus={index === rows.length - 1 && index > 0} // Auto-focus if it's the last row and not the first one (which might be auto-filled or handled separately)
                                         />
-                                        <datalist id={`row-ledgers-${index}`}>
-                                            {getRowLedgers().map(l => <option key={l.id} value={l.name} />)}
-                                        </datalist>
                                     </div>
                                     <div className={styles.amountFieldContainer}>
                                         <input
@@ -341,6 +339,21 @@ export default function VoucherEntryForm({ companyId, type, onExit, userToken })
                                             type="number"
                                             value={row.amount}
                                             onChange={e => handleRowChange(index, 'amount', e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && row.amount && row.ledger_id) {
+                                                    e.preventDefault();
+                                                    // Add new row if limit not reached
+                                                    if (rows.length < 5) {
+                                                        const newRows = [...rows, { ledger_id: '', amount: '', search: '' }];
+                                                        setRows(newRows);
+                                                    } else {
+                                                        alert("Maximum 5 rows allowed.");
+                                                    }
+                                                    // Focus logic will be handled by useEffect or ref in LedgerSelector presumably, 
+                                                    // but we might need a way to focus the *next* selector.
+                                                    // For now, let's just add the row. The LedgerSelector autoFocus logic might need a tweak if it's not the first row.
+                                                }
+                                            }}
                                             className={`${styles.tallyInputCompact} ${styles.amountField}`}
                                             placeholder="0.00"
                                             required
@@ -359,7 +372,18 @@ export default function VoucherEntryForm({ companyId, type, onExit, userToken })
                         </div>
 
                         <div className={styles.addBtnRowCompact}>
-                            <button type="button" onClick={() => setRows([...rows, { ledger_id: '', amount: '', search: '' }])} className={styles.tallyAddBtnSmall}>+ Row</button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (rows.length < 5) {
+                                        setRows([...rows, { ledger_id: '', amount: '', search: '' }]);
+                                    } else {
+                                        alert("Maximum 5 rows allowed per entry.");
+                                    }
+                                }}
+                                className={styles.tallyAddBtnSmall}
+                                disabled={rows.length >= 5}
+                            >+ Row</button>
                             <button type="button" onClick={() => setShowCreateLedger(true)} className={styles.tallyAddBtnSmall}>+ Ledger</button>
                         </div>
                     </div>

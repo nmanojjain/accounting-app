@@ -1,310 +1,261 @@
 /* Main Container */
 .container {
-    padding: 1rem;
-    height: calc(100vh - 72px);
+    padding: 0.15rem;
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    background: var(--background);
-    font-family: var(--font-sans);
-    gap: 0.75rem;
+    background: #f1f5f9;
+    font-family: 'Consolas', 'Monaco', monospace;
+    /* Accounting vibe */
+    gap: 0.15rem;
 }
 
-.reportSelector {
-    font-size: 1.25rem;
-    font-weight: 800;
-    border: none;
-    background: transparent;
-    padding: 0;
-    color: var(--foreground);
-    outline: none;
-    cursor: pointer;
-}
-
-/* Date Slider */
-.dateSlider {
-    display: flex;
-    gap: 0.5rem;
-    overflow-x: auto;
-    padding: 0.25rem 0;
-    margin-bottom: 0.25rem;
-    scrollbar-width: none;
-}
-
-.dateSlider::-webkit-scrollbar {
-    display: none;
-}
-
-.dateCard {
-    background: white;
-    min-width: 50px;
-    padding: 0.5rem;
-    border-radius: 0.75rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: 1px solid var(--card-border);
-    transition: all 0.2s;
-}
-
-.dateCard.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-    box-shadow: var(--shadow-md);
-}
-
-.dateCardMonth {
-    font-size: 0.6rem;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
-.dateCardDay {
-    font-size: 1.1rem;
-    font-weight: 800;
-}
-
-/* Controls */
-.controls {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    background: white;
-    padding: 0.75rem 1rem;
-    border-radius: 1rem;
-    border: 1px solid var(--card-border);
-    box-shadow: var(--shadow-sm);
-}
-
-.controlGroup {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.controlGroup label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
-    margin-left: 0.125rem;
-}
-
-.dateControls {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: #f8fafc;
-    padding: 0.125rem 0.25rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--card-border);
-}
-
-.selectAllBtn {
-    background: #e2e8f0;
-    border: none;
-    padding: 0.3rem 0.6rem;
-    border-radius: 0.4rem;
-    font-size: 0.65rem;
-    font-weight: 800;
-    color: #475569;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-transform: uppercase;
-    white-space: nowrap;
-    margin-left: 0.5rem;
-}
-
-.selectAllBtn:hover {
-    background: #cbd5e1;
-    color: #1e293b;
-}
-
-.toLabel {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #94a3b8;
-}
-
-.select,
-.input {
-    padding: 0.4rem 0.75rem;
-    border: 1px solid transparent;
-    background: #f8fafc;
-    color: var(--foreground);
-    border-radius: 0.5rem;
-    font-size: 0.9rem;
-    font-weight: 700;
-    outline: none;
-}
-
-.dateControls .input {
-    background: transparent;
-    border: none;
-    padding: 0.3rem 0.5rem;
-}
-
-/* Report Content */
-.reportContent {
-    flex: 1;
-    background: white;
-    border-radius: 1rem;
-    border: 1px solid var(--card-border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    position: relative;
-    box-shadow: var(--shadow-md);
-}
-
-.tableContainer {
-    flex: 1;
-    overflow: auto;
-}
-
-.table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.table th {
-    position: sticky;
-    top: 0;
-    background: #f8fafc;
-    color: #64748b;
-    font-weight: 700;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    padding: 0.6rem 0.75rem;
-    text-align: left;
-    border-bottom: 2px solid var(--card-border);
-    z-index: 5;
-}
-
-.table td {
-    padding: 0.4rem 0.75rem;
-    color: var(--foreground);
-    border-bottom: 1px solid #f1f5f9;
-    font-size: 0.85rem;
-    vertical-align: middle;
-}
-
-.colDebit,
-.colCredit,
-.colBalance {
-    text-align: right;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    width: 110px;
-}
-
-/* Vertical Separator */
-.colCredit {
-    border-left: 1px solid #e2e8f0 !important;
-}
-
+/* Modern Floating Header */
 .headerRow {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 0.5rem;
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 0.5rem;
+    /* Glass / Card Effect */
+    background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-bottom: 1px solid #bfdbfe;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    color: #1e293b;
+    flex-shrink: 0;
+    backdrop-filter: blur(8px);
+    z-index: 10;
 }
 
-.table th,
-.table td {
-    border-right: 1px solid #f1f5f9;
-}
-
-.table th:last-child,
-.table td:last-child {
-    border-right: none;
-}
-
-.actionButtons {
+/* Modern Pill Toggle */
+.reportToggle {
     display: flex;
-    gap: 0.5rem;
-    justify-content: flex-end;
+    background: #e2e8f0;
+    padding: 0.2rem;
+    border-radius: 999px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    border: none;
 }
 
-.editBtn,
-.deleteBtn {
-    padding: 0.3rem 0.6rem;
+.toggleBtn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    padding: 0.25rem 0.8rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 999px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.activeToggle {
+    background: #3b82f6;
+    /* Vibrant Blue */
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
+    transform: scale(1.05);
+}
+
+.headerControls {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.dateInputsGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 0.2rem 0.4rem;
+    border-radius: 8px;
+    border: 1px solid #bfdbfe;
+}
+
+/* Chip Input Style */
+.miniInput {
+    padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    background: #f1f5f9;
+    color: #334155;
+    border-radius: 6px;
+    width: 110px;
+    outline: none;
+    transition: all 0.2s;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.miniInput:focus {
+    background: white;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    color: #0f172a;
+}
+
+.divider {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.fyButtonCompact {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border-radius: 6px;
+    min-width: 30px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.fyButtonCompact:active {
+    transform: scale(0.95);
+}
+
+.typeFilters {
+    display: flex;
+    gap: 0.2rem;
+}
+
+.filterBtn {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.6rem;
     font-weight: 700;
     border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
     cursor: pointer;
-    border: none;
     transition: all 0.2s;
 }
 
-.editBtn {
-    background: #eff6ff;
-    color: #2563eb;
-}
-
-.editBtn:hover {
-    background: #2563eb;
-    color: white;
-}
-
-.deleteBtn {
-    background: #fef2f2;
-    color: #ef4444;
-}
-
-.deleteBtn:hover {
-    background: #ef4444;
-    color: white;
-}
-
-.particularsMain {
-    font-weight: 700;
-    color: var(--foreground);
-    font-size: 0.9rem;
-}
-
-.particularsSub {
-    font-size: 0.75rem;
-    color: #94a3b8;
-    margin-top: 1px;
-}
-
-.colDate {
-    width: 100px;
-}
-
-.colType {
-    width: 100px;
-}
-
-.colNo {
-    width: 80px;
-}
-
-.colAction {
-    width: 120px;
-}
-
-.cancelledVoucher {
-    background-color: #fef2f2;
-    opacity: 0.7;
-}
-
-.voucherStartRow td {
-    border-top: 2px solid #f1f5f9;
-}
-
-.openingRow td,
-.closingRow td {
-    background: #f8fafc;
+.activeFilter {
+    background: #eff6ff !important;
+    color: #2563eb !important;
+    border-color: #bfdbfe !important;
     font-weight: 800;
-    color: var(--primary);
+}
+
+.exitBtn {
+    padding: 0.3rem 0.8rem !important;
+    font-size: 0.7rem !important;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3) !important;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.exitBtn:active {
+    transform: scale(0.95);
+}
+
+/* Report Content Area - Card effect */
+.reportContent {
+    flex: 1;
+    background: white;
+    overflow: hidden;
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    border-radius: 12px;
+    /* Matches header radius feel */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    /* Subtle lift */
+    border: 1px solid #f1f5f9;
+}
+
+.tableContainer {
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+/* Sticky Headers */
+.table thead th {
+    position: sticky;
+    top: 0;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 0.6rem;
     text-transform: uppercase;
-    font-size: 0.75rem;
+    padding: 0.2rem 0.3rem;
+    z-index: 30;
+    text-align: left;
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.dateStickyHeader td {
+    position: sticky;
+    top: 20px;
+    /* Aligned with reduced header th height */
+    background: #f1f5f9;
+    padding: 0.15rem 0.4rem;
+    z-index: 25;
+    border-top: 1px solid #cbd5e1;
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.stickyDateLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.stickyDay {
+    font-size: 0.85rem;
+    font-weight: 900;
+    color: #1e293b;
+}
+
+.stickyMonth {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+/* Entry Rows */
+.compactRow td {
+    padding: 0.15rem 0.3rem;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    line-height: 1.1;
+}
+
+.debitRow .ledgerNameText,
+.debitRow .colIndicatorCompact,
+.debitRow .colAmountCompact {
+    color: #dc2626 !important;
+}
+
+.creditRow .ledgerNameText,
+.creditRow .colIndicatorCompact,
+.creditRow .colAmountCompact {
+    color: #16a34a !important;
 }
 
 .evenVoucher {
@@ -313,34 +264,411 @@
 
 .oddVoucher {
     background: #f8fafc;
+    /* Subtle zebra */
 }
 
-.oddVoucher:hover,
-.evenVoucher:hover {
+/* Ledger Table Zebra Striping */
+.ledgerTable tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.ledgerTable tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+/* Row Separators */
+.compactRow td,
+.ledgerTable td {
+    border-bottom: 1px solid #e2e8f0 !important;
+    /* Visible thin line */
+}
+
+/* Fixed Columns */
+.colLedger {
+    width: auto;
+}
+
+.colTypeSmall {
+    width: 35px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 0.65rem !important;
+}
+
+.colIndicatorCompact {
+    width: 18px;
+    text-align: center;
+    font-weight: 900;
+    font-size: 0.75rem !important;
+}
+
+.colAmountCompact {
+    width: 95px;
+    text-align: right;
+    font-weight: 800;
+    font-family: 'Consolas', monospace;
+}
+
+.colQuickEdit {
+    width: 28px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.colQuickEdit:hover {
     background: #f1f5f9;
 }
 
-/* Small Buttons */
-.deleteBtn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.7rem;
-    border-radius: 0.4rem;
+.editIconSmall {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    display: inline-block;
+    padding: 0.1rem;
 }
 
-/* Mobile optimization */
+.colQuickEdit:active .editIconSmall {
+    transform: scale(1.2);
+    color: #3b82f6;
+}
+
+.ledgerInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.ledgerNameText {
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inlineNarration {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    font-style: italic;
+    font-weight: 400;
+}
+
+/* Voucher Type Color Coding */
+.receiptColor {
+    color: #10b981;
+}
+
+.paymentColor {
+    color: #ef4444;
+}
+
+.salesColor {
+    color: #3b82f6;
+}
+
+.purchaseColor {
+    color: #f59e0b;
+}
+
+.contraColor {
+    color: #4b5563;
+}
+
+.journalColor {
+    color: #8b5cf6;
+}
+
+/* Mobile Optimizations - specifically for widths like iPhone XR (414px) */
+@media (max-width: 600px) {
+    .headerRow {
+        flex-direction: column;
+        gap: 0.2rem;
+        padding: 0.2rem;
+    }
+
+    .headerControls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .dateInputsGroup {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .typeFilters {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .miniInput {
+        width: 80px;
+        font-size: 0.65rem;
+    }
+
+    .colAmountCompact {
+        width: 85px;
+    }
+
+    .colTypeSmall {
+        width: 30px;
+    }
+
+    .ledgerNameText {
+        font-size: 0.725rem;
+    }
+
+    .inlineNarration {
+        display: none;
+    }
+}
+
+/* Ultra Small screens */
+@media (max-width: 375px) {
+    .colAmountCompact {
+        width: 75px;
+    }
+
+    .miniInput {
+        width: 75px;
+    }
+}
+
+/* Wrapper for the selector to control width */
+.ledgerSelectorWrapper {
+    width: 250px;
+}
+
+/* Ensure the inner input of the selector has correct colors for dark header */
+.reportLedgerSelect :global(input) {
+    background: #334155;
+    border: 1px solid #475569;
+    color: white;
+}
+
+.reportLedgerSelect :global(.LedgerSelector-module__chevron) {
+    color: #94a3b8;
+}
+
+/* Mobile responsive adjustments */
 @media (max-width: 768px) {
+    .ledgerSelectorWrapper {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    /* Allow table to fit screen width */
+    .tableContainer {
+        overflow-x: hidden;
+        /* Prevent scroll */
+    }
+
+    .table {
+        min-width: 100%;
+        width: 100%;
+        table-layout: fixed;
+        /* Critical for ellipsis */
+    }
+
+    /* Mobile Column Widths */
+    .colTypeSmall {
+        width: 30px !important;
+        font-size: 0.6rem !important;
+    }
+
+    .colIndicatorCompact {
+        width: 15px !important;
+        font-size: 0.65rem !important;
+        padding: 0 !important;
+    }
+
+    .colAmountCompact {
+        width: 75px !important;
+        font-size: 0.7rem !important;
+    }
+
+    .colLedger {
+        width: auto;
+        /* Takes remaining space */
+    }
+
+    .ledgerNameText {
+        font-size: 0.7rem !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+
+    /* Compact Row padding */
+    .compactRow td {
+        padding: 0.2rem 0.1rem !important;
+        /* Tight padding */
+    }
+
+    /* Hide non-critical on mobile */
+    .inlineNarration {
+        display: none;
+    }
+
+    /* Header optimization */
+    .headerRow {
+        flex-direction: column;
+        gap: 0.3rem;
+        padding: 0.25rem;
+    }
+
+    .headerControls {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .dateInputsGroup {
+        gap: 0.1rem;
+    }
+
+    .miniInput {
+        width: 95px;
+        /* WIDER on mobile too */
+        font-size: 0.7rem;
+    }
+
+    .typeFilters {
+        gap: 0.1rem;
+    }
+
+    .filterBtn {
+        padding: 0.15rem 0.2rem;
+        font-size: 0.55rem;
+    }
+
+    /* --- Ledger Statement Mobile Optimizations --- */
+    .colType,
+    .colNo {
+        display: none !important;
+    }
+
+    .colDate {
+        width: 40px !important;
+        font-size: 0.65rem !important;
+        padding: 0.2rem 0.1rem !important;
+        white-space: normal !important;
+        /* Allow simple wrapping */
+        line-height: 1 !important;
+    }
+
+    .colParticulars {
+        width: auto !important;
+        /* Take remaining space */
+        max-width: none !important;
+        /* Allow shrinking */
+        font-size: 0.7rem !important;
+    }
+
+    .particularsMain {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.7rem !important;
+        max-width: 100%;
+        /* Ensure it respects parent width */
+    }
+
+    .colDebit,
     .colCredit {
-        border-left: none !important;
+        width: 50px !important;
+        font-size: 0.65rem !important;
+        padding: 0.2rem 0.1rem !important;
+        text-align: right;
     }
 
-    .table tr {
-        padding: 0.75rem;
-        margin-bottom: 0.5rem;
-        border-radius: 0.75rem;
+    .colBalance {
+        width: 55px !important;
+        font-size: 0.65rem !important;
+        padding: 0.2rem 0.1rem !important;
+        text-align: right;
     }
 
-    .table td {
-        padding: 0.25rem 0;
-        font-size: 0.8rem;
+    /* Fix Opening/Closing Balance Rows */
+    .openingRow td,
+    .closingRow td {
+        font-size: 0.75rem !important;
+        /* Smaller font */
+        padding: 0.25rem 0.2rem !important;
+        white-space: nowrap !important;
     }
+
+    /* --- GRID LAYOUT FOR LEDGER TABLE (Mobile Only) --- */
+    .ledgerTable thead,
+    .ledgerTable tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .ledgerTable tr {
+        display: grid !important;
+        grid-template-columns: 40px minmax(0, 1fr) 50px 50px 55px !important;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* Fix Opening/Closing Balance Rows - Flexbox/Grid Method */
+    .openingRow,
+    .closingRow {
+        display: grid !important;
+        /* Inherits styles from .ledgerTable tr */
+    }
+
+    .openingRow td,
+    .closingRow td {
+        display: block !important;
+        width: auto !important;
+        /* Reset fixed widths */
+        font-size: 0.65rem !important;
+        /* MATCH STANDARD ROW SIZE */
+        padding: 0.2rem 0.1rem !important;
+        /* MATCH STANDARD PADDING */
+    }
+
+    /* Align Header Cells to Grid */
+    .ledgerTable th {
+        display: flex;
+        align-items: center;
+        /* Center header text vertically */
+        overflow: hidden;
+    }
+
+    /* Handle Opening/Closing Spanning */
+    /* 1st Cell (Label): Spans Date(1) + Part(2) + Debit(3) + Credit(4) -> Ends at line 5 */
+    .openingRow td:first-child,
+    .closingRow td:first-child {
+        grid-column: 1 / 5 !important;
+        text-align: left;
+        font-weight: 700;
+    }
+
+    /* 2nd Cell (Amount): Place in Balance Column (5) */
+    .openingRow td:last-child,
+    .closingRow td:last-child {
+        grid-column: 5 / 6 !important;
+        text-align: right !important;
+        width: 100% !important;
+        /* Fill the grid cell */
+        font-weight: 700;
+    }
+
+    /* Ensure inner cells behave */
+    .ledgerTable td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+/* Color Utilities */
+.textValDebit {
+    color: #dc2626;
+}
+
+.textValCredit {
+    color: #16a34a;
 }

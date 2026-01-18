@@ -179,9 +179,8 @@ export default function EditVoucherModal({ voucher, companyId, onClose, onSave }
 
         const result = await updateVoucher(formData, entries);
         if (result.success) {
-            if (confirm('Voucher Updated Successfully! Exit editing mode?')) {
-                onSave();
-            }
+            // Success! Close modal immediately.
+            onSave();
         } else {
             alert(result.error);
         }
@@ -247,43 +246,49 @@ export default function EditVoucherModal({ voucher, companyId, onClose, onSave }
                         </div>
                     </div>
 
-                    <div className={styles.entriesSection}>
-                        <h3>Particulars</h3>
-                        {rows.map((row, index) => (
-                            <div key={index} className={styles.entryRow}>
-                                <div className={styles.field} style={{ flex: 3 }}>
-                                    <label>Ledger Account</label>
-                                    <select
-                                        value={row.ledger_id}
-                                        onChange={(e) => handleRowChange(index, 'ledger_id', e.target.value)}
-                                        className={styles.selectInput}
-                                        required
-                                    >
-                                        <option value="">Select Ledger</option>
-                                        {getRowLedgers().map(l => (
-                                            <option key={l.id} value={l.id}>
-                                                {l.name} ({l.group_name})
-                                            </option>
-                                        ))}
-                                    </select>
+                    <div className={styles.entriesSectionCompact}>
+                        <div className={styles.entriesLabels}>
+                            <span className={styles.labelParticulars}>Particulars</span>
+                            <span className={styles.labelAmount}>Amount</span>
+                            <span className={styles.labelAction}></span>
+                        </div>
+                        <div className={styles.entriesListScrollable} style={{ maxHeight: '300px' }}> {/* Allow more height in modal */}
+                            {rows.map((row, index) => (
+                                <div key={index} className={styles.tallyEntryRowCompact}>
+                                    <div className={styles.particularsField}>
+                                        <select
+                                            value={row.ledger_id}
+                                            onChange={(e) => handleRowChange(index, 'ledger_id', e.target.value)}
+                                            className={styles.tallyInputCompact}
+                                            style={{ padding: '0.4rem', width: '100%', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                                            required
+                                        >
+                                            <option value="">Select Ledger</option>
+                                            {getRowLedgers().map(l => (
+                                                <option key={l.id} value={l.id}>
+                                                    {l.name} ({l.group_name})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className={styles.amountFieldContainer}>
+                                        <input
+                                            type="number"
+                                            placeholder="0.00"
+                                            value={row.amount}
+                                            onChange={(e) => handleRowChange(index, 'amount', e.target.value)}
+                                            className={`${styles.tallyInputCompact} ${styles.amountField}`}
+                                            required
+                                        />
+                                    </div>
+                                    <div className={styles.actionField}>
+                                        <button type="button" onClick={() => removeRow(index)} className={styles.tallyRemoveBtnSmall} title="Remove Row">×</button>
+                                    </div>
                                 </div>
-                                <div className={styles.field} style={{ flex: 1, minWidth: '150px' }}>
-                                    <label>Amount (₹)</label>
-                                    <input
-                                        type="number"
-                                        placeholder="0.00"
-                                        value={row.amount}
-                                        onChange={(e) => handleRowChange(index, 'amount', e.target.value)}
-                                        className={styles.input}
-                                        style={{ textAlign: 'right', fontWeight: 800 }}
-                                        required
-                                    />
-                                </div>
-                                <button type="button" onClick={() => removeRow(index)} className={styles.removeBtn} title="Remove Row">×</button>
-                            </div>
-                        ))}
-                        <div style={{ marginTop: '10px' }}>
-                            <Button type="button" onClick={addRow} variant="secondary" size="small">+ Add New Line</Button>
+                            ))}
+                        </div>
+                        <div className={styles.addBtnRowCompact}>
+                            <Button type="button" onClick={addRow} variant="secondary" size="small">+ Line</Button>
                         </div>
                     </div>
 

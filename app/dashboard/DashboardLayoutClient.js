@@ -82,6 +82,24 @@ export default function DashboardLayoutClient({ children }) {
 
     if (!user) return null;
 
+    const isEntryMode = searchParams.get('view') === 'entry';
+
+    if (!user) return null;
+
+    if (isEntryMode) {
+        return (
+            <div className={styles.layout}>
+                <main className={styles.main} style={{ padding: 0, height: '100vh', overflow: 'hidden' }}>
+                    <div className={styles.content} style={{ padding: 0, height: '100%' }}>
+                        <div className="container" style={{ padding: 0, maxWidth: '100%', height: '100%' }}>
+                            {children}
+                        </div>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
     return (
         <div className={styles.layout}>
             {/* Mobile Overlay */}
@@ -165,12 +183,12 @@ export default function DashboardLayoutClient({ children }) {
                     </div>
 
                     <div className={styles.headerCenter}>
-                        {company && (
+                        {/* {company && (
                             <div className={styles.globalCompanyBadge}>
                                 <span className={styles.badgeLabel}>ACTIVE WORKSPACE</span>
                                 <span className={styles.badgeName}>{company.name}</span>
                             </div>
-                        )}
+                        )} */}
                     </div>
 
                     <div className={styles.headerRight}>

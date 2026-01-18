@@ -1,0 +1,219 @@
+.container {
+  width: 100%;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.trigger {
+  position: relative;
+  cursor: pointer;
+}
+
+.triggerInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  /* Use transparent or light background */
+  border: 1px solid #cbd5e1;
+  /* Match other inputs */
+  border-radius: 0.75rem;
+  color: #1e293b;
+  /* Dark text for visibility */
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  /* Ensure entire input feels clickable */
+}
+
+.triggerInput::placeholder {
+  color: #64748b;
+}
+
+.chevron {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  /* Slate-500 */
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+/* Modal Overlay - Full screen */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  /* Bottom sheet on mobile default */
+  justify-content: center;
+}
+
+/* Modal Content - The actual sheet */
+.modalContent {
+  background: #1e293b;
+  width: 100%;
+  max-width: 600px;
+  /* Limit width on desktop */
+  height: 100%;
+  /* Full height on mobile to ensure keyboard doesn't push it off */
+  max-height: 100dvh;
+  /* Use dynamic viewport height */
+  border-top-left-radius: 1.5rem;
+  border-top-right-radius: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 640px) {
+  .modalOverlay {
+    align-items: center;
+    /* Center on desktop */
+  }
+
+  .modalContent {
+    height: 600px;
+    border-radius: 1.5rem;
+    animation: fadeInScale 0.2s ease-out;
+  }
+}
+
+/* Search Header */
+.searchHeader {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-shrink: 0;
+  /* Prevent header from shrinking */
+}
+
+.searchInput {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+}
+
+.searchInput:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.closeBtn {
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+/* List Container */
+.listContainer {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  padding-bottom: 50vh;
+  /* Huge padding to ensure content is visible above keyboard */
+  -webkit-overflow-scrolling: touch;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  color: #475569;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.listItem {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.listItem:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (hover: hover) {
+  .listItem:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.itemName {
+  color: white;
+  font-weight: 500;
+}
+
+.itemGroup {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.listItem.selected {
+  background: rgba(59, 130, 246, 0.2);
+  /* Blue tint */
+  border-left: 3px solid #3b82f6;
+}
+
+.noResults {
+  text-align: center;
+  color: #64748b;
+  padding: 2rem;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

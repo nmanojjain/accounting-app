@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import styles from './page.module.css';
 import Link from 'next/link';
 import VoucherEntryForm from '@/app/components/VoucherEntryForm';
-import { getLedgers } from '@/app/actions';
+import { getLedgers, getSalesStats } from '@/app/actions';
 
 export default function CompanyDashboardPage() {
     const { companyId } = useParams();
@@ -29,9 +29,10 @@ export default function CompanyDashboardPage() {
     // Data State
     const [company, setCompany] = useState(null);
     const [user, setUser] = useState(null);
-    const [cashBalance, setCashBalance] = useState(0);
-    const [bankBalances, setBankBalances] = useState([]);
-    const [upiBalances, setUpiBalances] = useState([]);
+    const [userRole, setUserRole] = useState('operator'); // Default safe
+    const [cashLedgers, setCashLedgers] = useState([]);
+    const [bankLedgers, setBankLedgers] = useState([]);
+    const [salesStats, setSalesStats] = useState({ today: 0, mtd: 0 });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -46,6 +47,15 @@ export default function CompanyDashboardPage() {
         }
         setUser(user);
 
+        // Fetch User Role
+        const { data: userData } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+        const role = userData?.role || 'operator';
+        setUserRole(role);
+
         const { data: companyData } = await supabase
             .from('companies')
             .select('*')
@@ -53,27 +63,29 @@ export default function CompanyDashboardPage() {
             .single();
         setCompany(companyData);
 
-        const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
-        const isAdmin = userData?.role === 'admin';
+        // Fetch Sales Stats (Only if Admin)
+        if (role === 'admin') {
+            const stats = await getSalesStats(companyId);
+            setSalesStats(stats);
+        } else {
+            setSalesStats({ today: 0, mtd: 0 });
+        }
 
-        // Fetch All Ledgers for Balances securely
+        // Fetch All Ledgers
         const allLedgers = await getLedgers(companyId);
 
-        // Find Cash Ledger
-        const cashLedger = allLedgers.find(l =>
-            l.group_name === 'Cash-in-hand' &&
-            (isAdmin ? !l.assigned_operator_id : l.assigned_operator_id === user.id)
-        );
-        if (cashLedger) setCashBalance(cashLedger.current_balance);
+        // Filter Cash/Bank based on Role
+        let filteredCash = allLedgers.filter(l => l.group_name === 'Cash-in-hand');
+        let filteredBank = allLedgers.filter(l => l.group_name === 'Bank Accounts');
 
-        // Find Bank Balances (limit 2 for UI)
-        const banks = allLedgers.filter(l => l.group_name === 'Bank Accounts').slice(0, 2);
-        setBankBalances(banks);
+        if (role === 'operator') {
+            // Operator Restriction: Only assigned ledgers
+            filteredCash = filteredCash.filter(l => l.assigned_operator_id === user.id);
+            filteredBank = filteredBank.filter(l => l.assigned_operator_id === user.id);
+        }
 
-        // Find UPI Balances
-        const upis = allLedgers.filter(l => l.name.toUpperCase().includes('UPI'));
-        setUpiBalances(upis);
-
+        setCashLedgers(filteredCash);
+        setBankLedgers(filteredBank);
         setLoading(false);
     };
 
@@ -89,30 +101,14 @@ export default function CompanyDashboardPage() {
         { id: 'journal', label: 'Journal (F7)', icon: '📝' },
     ];
 
-    const containerClass = `${styles.container} ${view === 'entry' ? styles[voucherType] : ''}`;
+    const containerClass = `${styles.container} ${view === 'entry' ? styles.entryModeContainer : ''}`;
+
+    const today = new Date().toISOString().split('T')[0];
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
     return (
         <div className={containerClass}>
-            <header className={styles.workspaceHeader}>
-                <div className={styles.titleGroup}>
-                    <h1>{company.name}</h1>
-                    <span className={styles.fyBadge}>FY {company.financial_year}</span>
-                </div>
-            </header>
-
-            {/* Quick Access Tabs (Top Row) */}
-            <div className={styles.topTabs}>
-                {voucherTypes.map(t => (
-                    <button
-                        key={t.id}
-                        className={`${styles.typeBtn} ${voucherType === t.id && view === 'entry' ? styles.activeType : ''} ${t.id === voucherType ? styles[t.id + 'Selected'] : ''}`}
-                        onClick={() => { setVoucherType(t.id); setView('entry'); }}
-                    >
-                        <span className={styles.typeIcon}>{t.icon}</span>
-                        <span className={styles.typeLabel}>{t.label}</span>
-                    </button>
-                ))}
-            </div>
+            {/* ... header ... */}
 
             {/* Main Content Area */}
             <main className={`${styles.workspaceBody} ${view === 'entry' ? styles.entryModeBody : ''}`}>
@@ -124,25 +120,61 @@ export default function CompanyDashboardPage() {
                     />
                 ) : (
                     <div className={styles.overviewSection}>
+                        {/* 1. Restored Voucher Shortcut Grid */}
+                        <div className={styles.voucherGrid}>
+                            {voucherTypes.map(v => (
+                                <button
+                                    key={v.id}
+                                    onClick={() => {
+                                        setVoucherType(v.id);
+                                        setView('entry');
+                                    }}
+                                    className={styles.voucherBtn}
+                                >
+                                    <span className={styles.voucherIcon}>{v.icon}</span>
+                                    <span className={styles.voucherLabel}>{v.label}</span>
+                                </button>
+                            ))}
+                        </div>
+
                         <div className={styles.balanceGrid}>
-                            <div className={`${styles.balanceCard} ${styles.cashCard}`}>
-                                <span className={styles.cardType}>CASH</span>
-                                <p className={styles.balance}>₹ {Number(cashBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
-                                <span className={styles.balanceLabel}>User Balance</span>
-                            </div>
-                            {bankBalances.map(bank => (
-                                <div key={bank.name} className={`${styles.balanceCard} ${styles.bankCard}`}>
+                            {/* Sales Stats - Only for Admin */}
+                            {userRole === 'admin' && (
+                                <>
+                                    <Link
+                                        href={`/dashboard/reports?type=daybook&companyId=${companyId}&filterType=sales&fromDate=${today}&toDate=${today}`}
+                                        className={`${styles.balanceCard} ${styles.salesCard}`}
+                                    >
+                                        <span className={styles.cardType}>SALES TODAY</span>
+                                        <p className={styles.balance}>₹ {Number(salesStats.today).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                    </Link>
+
+                                    <Link
+                                        href={`/dashboard/reports?type=daybook&companyId=${companyId}&filterType=sales&fromDate=${startOfMonth}&toDate=${today}`}
+                                        className={`${styles.balanceCard} ${styles.salesCard}`}
+                                    >
+                                        <span className={styles.cardType}>SALES MTD</span>
+                                        <p className={styles.balance}>₹ {Number(salesStats.mtd).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                    </Link>
+                                </>
+                            )}
+
+                            {/* Render Filtered Cash Ledgers (State is already filtered) */}
+                            {cashLedgers.map(cash => (
+                                <Link key={cash.id} href={`/dashboard/reports?type=ledger&companyId=${companyId}&ledgerId=${cash.id}`} className={`${styles.balanceCard} ${styles.cashCard}`}>
+                                    <span className={styles.cardType}>CASH</span>
+                                    <p className={styles.balance}>₹ {Number(cash.current_balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                    <span className={styles.balanceLabel}>{cash.name}</span>
+                                </Link>
+                            ))}
+
+                            {/* Render Filtered Bank Ledgers */}
+                            {bankLedgers.map(bank => (
+                                <Link key={bank.id} href={`/dashboard/reports?type=ledger&companyId=${companyId}&ledgerId=${bank.id}`} className={`${styles.balanceCard} ${styles.bankCard}`}>
                                     <span className={styles.cardType}>BANK</span>
                                     <p className={styles.balance}>₹ {Number(bank.current_balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                                     <span className={styles.balanceLabel}>{bank.name}</span>
-                                </div>
-                            ))}
-                            {upiBalances.map(upi => (
-                                <div key={upi.name} className={`${styles.balanceCard} ${styles.upiCard}`}>
-                                    <span className={styles.cardType}>UPI</span>
-                                    <p className={styles.balance}>₹ {Number(upi.current_balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
-                                    <span className={styles.balanceLabel}>{upi.name}</span>
-                                </div>
+                                </Link>
                             ))}
                         </div>
 
@@ -160,6 +192,13 @@ export default function CompanyDashboardPage() {
                                 <span className={styles.btnIcon}>📊</span>
                                 <span>Statement</span>
                             </Link>
+                            {/* Migration Link for Admin */}
+                            {userRole === 'admin' && (
+                                <Link href="/dashboard/migration" className={styles.reportBtn} style={{ borderColor: '#dc2626', color: '#dc2626' }}>
+                                    <span className={styles.btnIcon}>⚠️</span>
+                                    <span>Migration</span>
+                                </Link>
+                            )}
                         </div>
                     </div>
                 )}

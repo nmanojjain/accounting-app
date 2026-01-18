@@ -91,10 +91,22 @@
     background-color: #f3e5f5;
 }
 
+/* Full Screen Entry Mode Styles */
+.entryModeContainer {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white;
+    min-height: 100vh;
+}
+
 .workspaceBody.entryModeBody {
-    background: rgba(255, 255, 255, 0.4);
+    background: white;
+    /* Ensure clean white background */
     box-shadow: none;
     border: none;
+    padding: 0;
+    /* Remove internal padding */
+    border-radius: 0;
 }
 
 .typeBtn {
@@ -198,44 +210,87 @@
 
 .balanceGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, 1fr);
+    /* 2 columns for square look */
+    gap: 0.8rem;
+    margin-top: 0.5rem;
 }
 
 .balanceCard {
-    padding: 1.5rem;
-    border-radius: 1rem;
-    color: white;
+    padding: 1rem;
+    border-radius: 16px;
+    /* Softer corners */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* Center content vertically */
+    align-items: center;
+    /* Center content horizontally */
+    text-align: center;
+    min-height: 110px;
+    /* Force height for square-ish look */
+    text-decoration: none;
+    color: #1e293b;
+    /* Dark text for contrast */
+    transition: transform 0.2s;
+    cursor: pointer;
+    border: none !important;
+    /* Remove old borders */
+}
+
+.balanceCard:active {
+    transform: scale(0.96);
 }
 
 .balance {
-    font-size: 2rem;
+    font-size: 1.1rem;
     font-weight: 800;
-    margin: 0.5rem 0;
+    margin: 0;
 }
 
 .cardType {
     font-size: 0.75rem;
-    font-weight: 900;
+    font-weight: 600;
+    text-transform: uppercase;
     opacity: 0.8;
+    margin-bottom: 0.2rem;
 }
 
 .balanceLabel {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
     opacity: 0.9;
-    font-weight: 600;
+    /* Limit text to 2 lines to prevent breaking square shape too much */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
+/* Distinct Background Colors */
 .cashCard {
-    background: linear-gradient(135deg, #2563eb, #1e40af);
+    background: #dcfce7;
+    /* Light Green */
+    color: #14532d;
 }
 
 .bankCard {
-    background: linear-gradient(135deg, #059669, #065f46);
+    background: #dbeafe;
+    /* Light Blue */
+    color: #1e3a8a;
 }
 
 .upiCard {
-    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    background: #f3e8ff;
+    /* Light Purple */
+    color: #581c87;
+}
+
+.salesCard {
+    background: #ffedd5;
+    /* Light Orange */
+    color: #7c2d12;
 }
 
 .reportsFooter {
@@ -322,7 +377,23 @@
     }
 
     .workspaceHeader h1 {
-        font-size: 1.25rem;
+        font-size: 1rem;
+        white-space: normal;
+        line-height: 1.3;
+    }
+
+    .titleGroup {
+        gap: 0.5rem;
+        width: 100%;
+        align-items: flex-start;
+        /* Align top so badge aligns with first line if name wraps */
+    }
+
+    .fyBadge {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.5rem;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .topTabs {
@@ -380,5 +451,70 @@
 
     .btnIcon {
         font-size: 1rem;
+    }
+}
+
+/* Restored Voucher Shortcut Grid */
+.voucherGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    /* 3 cols for 6 items */
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.voucherBtn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.voucherBtn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-color: #3b82f6;
+}
+
+.voucherBtn:active {
+    transform: scale(0.96);
+}
+
+.voucherIcon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.voucherLabel {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+}
+
+@media (max-width: 640px) {
+    .voucherGrid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+
+    .voucherBtn {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .voucherIcon {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .voucherLabel {
+        font-size: 0.65rem;
     }
 }

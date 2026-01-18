@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { deleteVoucher, cancelVoucher, getAccessibleCompanies, getLedgers, getDayBook, getLedgerEntries } from '@/app/actions';
@@ -8,43 +8,58 @@ import styles from './page.module.css';
 import Button from '@/components/Button';
 
 import EditVoucherModal from '@/app/components/EditVoucherModal';
+import LedgerSelector from '@/app/components/LedgerSelector';
 
-export default function ReportsPage() {
+// INTERNAL COMPONENT (The logic we had before)
+function ReportsContent() {
     const params = useParams();
     const searchParams = useSearchParams();
     const router = useRouter();
+
     const [companies, setCompanies] = useState([]);
     const [selectedCompany, setSelectedCompany] = useState(params?.companyId || searchParams.get('companyId') || '');
     const [reportType, setReportType] = useState(searchParams.get('type') || 'daybook');
+    const [typeFilter, setTypeFilter] = useState(searchParams.get('filterType') || 'all');
 
     useEffect(() => {
         const type = searchParams.get('type');
         if (type) setReportType(type);
+
+        const fDate = searchParams.get('fromDate');
+        if (fDate) setFromDate(fDate);
+
+        const tDate = searchParams.get('toDate');
+        if (tDate) setToDate(tDate);
+
+        const filter = searchParams.get('filterType');
+        if (filter) setTypeFilter(filter);
+
+        const ledger = searchParams.get('ledgerId');
+        if (ledger) setSelectedLedger(ledger);
     }, [searchParams]);
 
-    // Ledger View State
-    const [ledgers, setLedgers] = useState([]);
-    const [selectedLedger, setSelectedLedger] = useState('');
+    // RESTORED STATE
+    const [date, setDate] = useState(searchParams.get('date') || new Date().toISOString().split('T')[0]);
+    const [fromDate, setFromDate] = useState(searchParams.get('fromDate') || new Date().toISOString().split('T')[0]);
+    const [toDate, setToDate] = useState(searchParams.get('toDate') || new Date().toISOString().split('T')[0]);
 
-    // Date Range State
-    const [fromDate, setFromDate] = useState(new Date().toISOString().split('T')[0]);
-    const [toDate, setToDate] = useState(new Date().toISOString().split('T')[0]);
+    const [ledgers, setLedgers] = useState([]);
+    const [selectedLedger, setSelectedLedger] = useState(searchParams.get('ledgerId') || '');
+    // Removed redundant voucherTypeFilter, using typeFilter instead
 
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [openingBalance, setOpeningBalance] = useState(0);
 
-    // Summary State
     const [summary, setSummary] = useState({
         totalSales: 0,
         totalExpenses: 0,
         closingBalance: 0
     });
-
-    const [userRole, setUserRole] = useState(null);
-
+    // END RESTORED STATE
     // Edit Modal State
     const [editingVoucher, setEditingVoucher] = useState(null);
+    const [userRole, setUserRole] = useState(null);
 
     useEffect(() => {
         fetchUserRole();
@@ -52,17 +67,19 @@ export default function ReportsPage() {
     }, []);
 
     useEffect(() => {
+        loadLedgers();
+    }, [selectedCompany]);
+
+    // Auto-fetch report if params are present
+    useEffect(() => {
         if (selectedCompany) {
-            if (reportType === 'ledger') {
-                fetchLedgers();
-            }
             fetchReport();
         }
-    }, [selectedCompany, reportType, fromDate, toDate, selectedLedger]);
+    }, [selectedCompany, reportType, selectedLedger, date, fromDate, toDate, typeFilter]); // Updated dependencies
 
-    // Calculate Summary whenever data changes
+    // Calculate Summary whenever data changes for Daybook
     useEffect(() => {
-        if (reportType === 'daybook' && data.length > 0) {
+        if (reportType === 'daybook' && data && data.length > 0) {
             let sales = 0;
             let expenses = 0;
 
@@ -113,7 +130,8 @@ export default function ReportsPage() {
         }
     };
 
-    const fetchLedgers = async () => {
+    const loadLedgers = async () => {
+        if (!selectedCompany) return;
         const data = await getLedgers(selectedCompany);
         if (data) setLedgers(data);
     };
@@ -131,6 +149,18 @@ export default function ReportsPage() {
 
     const getDayNumber = (dateString) => {
         return dateString.split('-')[2];
+    };
+
+    const shortenType = (type) => {
+        if (!type) return '';
+        const t = type.toLowerCase();
+        if (t === 'receipt') return 'REC';
+        if (t === 'payment') return 'PMT';
+        if (t === 'sales') return 'SAL';
+        if (t === 'purchase') return 'PUR';
+        if (t === 'journal') return 'JV';
+        if (t === 'contra') return 'CON';
+        return type.substring(0, 3).toUpperCase();
     };
 
     // Generate dates for slider
@@ -207,95 +237,80 @@ export default function ReportsPage() {
         setLoading(false);
     };
 
+    const filteredData = reportType === 'daybook' && typeFilter !== 'all'
+        ? data.filter(v => v.voucher_type.toLowerCase() === typeFilter)
+        : data;
+
     return (
         <div className={styles.container}>
             <div className={`${styles.headerRow} stack-on-mobile`}>
                 <div className={styles.title}>
-                    <select value={reportType} onChange={e => setReportType(e.target.value)} className={styles.reportSelector}>
-                        <option value="daybook">Day Book</option>
-                        <option value="ledger">PARTY LEDGER (Statement)</option>
-                    </select>
-                </div>
-                {selectedCompany && (
-                    <Button onClick={() => router.push(`/dashboard/c/${selectedCompany}`)} variant="secondary" size="small">
-                        ← Exit to Workspace
-                    </Button>
-                )}
-            </div>
-
-            {/* Date Slider for Day Book */}
-            {reportType === 'daybook' && (
-                <div className={styles.dateSlider}>
-                    {getSliderDates().map(date => (
-                        <div
-                            key={date}
-                            className={`${styles.dateCard} ${date === fromDate && fromDate === toDate ? styles.active : ''}`}
-                            onClick={() => handleDateClick(date)}
-                        >
-                            <span className={styles.dateCardMonth}>{getMonthName(date)}</span>
-                            <span className={styles.dateCardDay}>{getDayNumber(date)}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            <div className={styles.controls}>
-                {!(params?.companyId || searchParams.get('companyId')) && (
-                    <div className={styles.controlGroup}>
-                        <label>Workspace</label>
-                        <select value={selectedCompany} onChange={e => setSelectedCompany(e.target.value)} className={styles.select}>
-                            {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                        </select>
-                    </div>
-                )}
-
-                {reportType === 'ledger' && (
-                    <div className={styles.controlGroup}>
-                        <label>Ledger</label>
-                        <select value={selectedLedger} onChange={e => setSelectedLedger(e.target.value)} className={styles.select}>
-                            <option value="">Select Ledger</option>
-                            {ledgers.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                        </select>
-                    </div>
-                )}
-
-                <div className={styles.controlGroup}>
-                    <label>Period</label>
-                    <div className={styles.dateControls}>
-                        <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className={styles.input} />
-                        <span className={styles.toLabel}>to</span>
-                        <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className={styles.input} />
+                    <div className={styles.reportToggle}>
                         <button
-                            type="button"
-                            className={styles.selectAllBtn}
+                            className={`${styles.toggleBtn} ${reportType === 'daybook' ? styles.activeToggle : ''}`}
+                            onClick={() => setReportType('daybook')}
+                        >
+                            Daybook
+                        </button>
+                        <button
+                            className={`${styles.toggleBtn} ${reportType === 'ledger' ? styles.activeToggle : ''}`}
+                            onClick={() => setReportType('ledger')}
+                        >
+                            Statement
+                        </button>
+                    </div>
+
+                    {reportType === 'ledger' && (
+                        <div className={styles.ledgerSelectorWrapper}>
+                            <LedgerSelector
+                                value={ledgers.find(l => l.id === selectedLedger)?.name || ''}
+                                ledgers={ledgers}
+                                onSelect={(l) => setSelectedLedger(l.id)}
+                                placeholder="Select Account..."
+                                className={styles.reportLedgerSelect}
+                            />
+                        </div>
+                    )}
+                </div>
+
+                <div className={styles.headerControls}>
+                    <div className={styles.dateInputsGroup}>
+                        <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className={styles.miniInput} />
+                        <span className={styles.divider}>to</span>
+                        <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className={styles.miniInput} />
+                        <button
+                            className={styles.fyButtonCompact}
                             onClick={() => {
                                 const company = companies.find(c => c.id === selectedCompany);
                                 if (company?.financial_year) {
-                                    // Parse "2023-24" or similar
                                     const parts = company.financial_year.split('-');
-                                    const startYear = parts[0];
-                                    let endYear = parts[0];
-                                    if (parts[1]) {
-                                        if (parts[1].length === 2) {
-                                            endYear = startYear.substring(0, 2) + parts[1];
-                                        } else {
-                                            endYear = parts[1];
-                                        }
-                                    }
-                                    setFromDate(`${startYear}-04-01`);
-                                    setToDate(`${endYear}-03-31`);
-                                } else {
-                                    // Fallback to current calendar year if FY not found
-                                    const year = new Date().getFullYear();
-                                    setFromDate(`${year}-01-01`);
-                                    setToDate(`${year}-12-31`);
+                                    setFromDate(`${parts[0]}-04-01`);
+                                    setToDate(`${parts[0].substring(0, 2)}${parts[1]}-03-31`);
                                 }
                             }}
                         >
-                            Select All (FY)
+                            FY
                         </button>
                     </div>
+
+                    <div className={styles.typeFilters}>
+                        {['all', 'receipt', 'payment', 'sales', 'purchase'].map(t => (
+                            <button
+                                key={t}
+                                onClick={() => setTypeFilter(t)}
+                                className={`${styles.filterBtn} ${typeFilter === t ? styles.activeFilter : ''}`}
+                            >
+                                {t.substring(0, 3).toUpperCase()}
+                            </button>
+                        ))}
+                    </div>
                 </div>
+
+                {selectedCompany && (
+                    <Button onClick={() => router.push(`/dashboard/c/${selectedCompany}`)} variant="secondary" size="small" className={styles.exitBtn}>
+                        Exit
+                    </Button>
+                )}
             </div>
 
             <div className={styles.reportContent}>
@@ -303,110 +318,88 @@ export default function ReportsPage() {
                     <>
                         <div className={`${styles.tableContainer} ${fromDate === toDate ? styles.singleDay : ''}`}>
                             {reportType === 'daybook' && (
-                                <table className={`${styles.table} responsive-table`}>
+                                <table className={styles.table}>
                                     <thead>
                                         <tr>
-                                            <th className={styles.colDate}>Date</th>
-                                            <th className={styles.colParticulars}>Particulars</th>
-                                            <th className={styles.colType}>Type</th>
-                                            <th className={styles.colNo}>No</th>
-                                            <th className={styles.colDebit}>Debit</th>
-                                            <th className={styles.colCredit}>Credit</th>
-                                            {userRole === 'admin' && <th className={styles.colAction}>Action</th>}
+                                            <th className={styles.colLedger}>Ledger / Account</th>
+                                            <th className={styles.colTypeSmall}>Type</th>
+                                            <th className={styles.colIndicatorCompact}></th>
+                                            <th className={styles.colAmountCompact}>Amount</th>
+                                            {userRole === 'admin' && <th className={styles.colQuickEdit}></th>}
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {data.length === 0 ? (
-                                            <tr><td colSpan={userRole === 'admin' ? 7 : 6} style={{ textAlign: 'center', padding: '2rem' }}>No transactions found.</td></tr>
+                                        {filteredData.length === 0 ? (
+                                            <tr><td colSpan={userRole === 'admin' ? 5 : 4} style={{ textAlign: 'center', padding: '2rem' }}>No transactions found.</td></tr>
                                         ) : (
-                                            data.map((v, vIndex) => {
-                                                const entries = v.voucher_entries || [];
-                                                const isCancelled = v.status === 'cancelled' || (v.narration && v.narration.startsWith('CANCELLED:'));
+                                            (() => {
+                                                let lastDate = null;
+                                                return filteredData.flatMap((v, vIndex) => {
+                                                    const isDateChange = v.date !== lastDate;
+                                                    lastDate = v.date;
+                                                    const entries = v.voucher_entries || [];
+                                                    const sortedEntries = [...entries].sort((a, b) => (Number(b.debit || 0) - Number(a.debit || 0)));
 
-                                                if (isCancelled) {
-                                                    return (
-                                                        <tr key={v.id} className={`${styles.cancelledVoucher} ${vIndex % 2 === 0 ? styles.evenVoucher : styles.oddVoucher}`}>
-                                                            <td className={styles.colDate} data-label="Date">{formatDate(v.date)}</td>
-                                                            <td data-label="Particulars">
-                                                                <div className={styles.particularsMain} style={{ color: '#ef4444' }}>{v.narration}</div>
-                                                            </td>
-                                                            <td data-label="Type">{v.voucher_type?.toUpperCase()}</td>
-                                                            <td data-label="No">{v.voucher_number || '-'}</td>
-                                                            <td className={styles.colDebit} data-label="Debit">0.00</td>
-                                                            <td className={styles.colCredit} data-label="Credit">0.00</td>
-                                                            {userRole === 'admin' && (
-                                                                <td data-label="Action">
-                                                                    <button
-                                                                        onClick={() => setEditingVoucher(v)}
-                                                                        className={styles.editBtn}
-                                                                        style={{ padding: '4px 8px', fontSize: '0.7rem' }}
-                                                                    >
-                                                                        RE-EDIT
-                                                                    </button>
-                                                                </td>
-                                                            )}
-                                                        </tr>
-                                                    );
-                                                }
-
-                                                // Sort entries: Debits first
-                                                const sortedEntries = [...entries].sort((a, b) => (Number(b.debit || 0) - Number(a.debit || 0)));
-
-                                                return sortedEntries.map((entry, index) => {
-                                                    const isDebit = Number(entry.debit) > 0;
-                                                    const isCredit = Number(entry.credit) > 0;
-                                                    const isFirst = index === 0;
-
-                                                    return (
-                                                        <tr key={`${v.id}-${index}`} className={`${isFirst ? styles.voucherStartRow : ''} ${vIndex % 2 === 0 ? styles.evenVoucher : styles.oddVoucher}`}>
-                                                            <td className={styles.colDate} data-label="Date">{isFirst ? formatDate(v.date) : ''}</td>
-                                                            <td className={styles.colParticulars} data-label="Particulars">
-                                                                <div className={styles.particularsMain}>
-                                                                    {isCredit ? 'To ' : ''}{entry.ledger?.name}
+                                                    const dateHeader = isDateChange ? (
+                                                        <tr key={`date-${v.date}`} className={styles.dateStickyHeader}>
+                                                            <td colSpan={userRole === 'admin' ? 5 : 4}>
+                                                                <div className={styles.stickyDateLabel}>
+                                                                    <span className={styles.stickyDay}>{new Date(v.date).getDate()}</span>
+                                                                    <span className={styles.stickyMonth}>{getMonthName(v.date)} {new Date(v.date).getFullYear()}</span>
                                                                 </div>
-                                                                {isFirst && <div className={styles.particularsSub}>{v.narration}</div>}
                                                             </td>
-                                                            <td className={styles.colType} data-label="Type">{isFirst ? v.voucher_type : ''}</td>
-                                                            <td className={styles.colNo} data-label="No">{isFirst ? (v.voucher_number || '-') : ''}</td>
-                                                            <td className={styles.colDebit} data-label="Debit">{isDebit ? Number(entry.debit).toFixed(2) : ''}</td>
-                                                            <td className={styles.colCredit} data-label="Credit">{isCredit ? Number(entry.credit).toFixed(2) : ''}</td>
-                                                            {userRole === 'admin' && (
-                                                                <td className={styles.colAction} data-label="Action">
-                                                                    {isFirst && (
-                                                                        <div className={styles.actionButtons}>
-                                                                            <button
-                                                                                onClick={() => setEditingVoucher(v)}
-                                                                                className={styles.editBtn}
-                                                                            >
-                                                                                Edit
-                                                                            </button>
-                                                                            <button
-                                                                                onClick={async () => {
-                                                                                    if (confirm('Are you sure you want to cancel this voucher?')) {
-                                                                                        const res = await cancelVoucher(v.id);
-                                                                                        if (res.success) fetchReport();
-                                                                                        else alert(res.error);
-                                                                                    }
-                                                                                }}
-                                                                                className={styles.deleteBtn}
-                                                                            >
-                                                                                Cancel
-                                                                            </button>
-                                                                        </div>
-                                                                    )}
-                                                                </td>
-                                                            )}
                                                         </tr>
-                                                    );
+                                                    ) : null;
+
+                                                    const voucherRows = sortedEntries.map((entry, index) => {
+                                                        const isDebit = Number(entry.debit) > 0;
+                                                        const isCredit = Number(entry.credit) > 0;
+                                                        const vType = v.voucher_type?.toLowerCase() || '';
+
+                                                        return (
+                                                            <tr
+                                                                key={`${v.id}-${index}`}
+                                                                className={`${styles.compactRow} ${isDebit ? styles.debitRow : styles.creditRow} ${vIndex % 2 === 0 ? styles.evenVoucher : styles.oddVoucher}`}
+                                                                onDoubleClick={() => userRole === 'admin' && setEditingVoucher(v)}
+                                                            >
+                                                                <td className={styles.colLedger}>
+                                                                    <div className={styles.ledgerInfo}>
+                                                                        <span className={styles.ledgerNameText}>{entry.ledger?.name}</span>
+                                                                        {index === 0 && v.narration && <span className={styles.inlineNarration}>({v.narration})</span>}
+                                                                    </div>
+                                                                </td>
+                                                                <td className={`${styles.colTypeSmall} ${styles[vType + 'Color']}`}>{shortenType(v.voucher_type)}</td>
+                                                                <td className={styles.colIndicatorCompact}>
+                                                                    {isDebit ? 'D' : 'C'}
+                                                                </td>
+                                                                <td className={styles.colAmountCompact}>
+                                                                    {Number(isDebit ? entry.debit : entry.credit).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                                </td>
+                                                                {userRole === 'admin' && (
+                                                                    <td
+                                                                        className={styles.colQuickEdit}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setEditingVoucher(v);
+                                                                        }}
+                                                                    >
+                                                                        {index === 0 && <span className={styles.editIconSmall} title="Edit Voucher">✎</span>}
+                                                                    </td>
+                                                                )}
+                                                            </tr>
+                                                        );
+                                                    });
+
+                                                    return dateHeader ? [dateHeader, ...voucherRows] : voucherRows;
                                                 });
-                                            })
+                                            })()
                                         )}
                                     </tbody>
                                 </table>
                             )}
 
                             {reportType === 'ledger' && (
-                                <table className={`${styles.table} responsive-table`}>
+                                <table className={`${styles.table} ${styles.ledgerTable}`}>
                                     <thead>
                                         <tr>
                                             <th className={styles.colDate}>Date</th>
@@ -421,7 +414,12 @@ export default function ReportsPage() {
                                     <tbody>
                                         <tr className={styles.openingRow}>
                                             <td colSpan="6">Opening Balance</td>
-                                            <td className={styles.colAmount} data-label="Balance">{(openingBalance || 0).toFixed(2)}</td>
+                                            <td
+                                                className={`${styles.colAmount} ${openingBalance > 0 ? styles.textValDebit : styles.textValCredit}`}
+                                                data-label="Balance"
+                                            >
+                                                {(openingBalance || 0).toFixed(2)} {openingBalance > 0 ? 'Dr' : 'Cr'}
+                                            </td>
                                         </tr>
                                         {data.length === 0 ? (
                                             <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>No transactions found.</td></tr>
@@ -442,7 +440,12 @@ export default function ReportsPage() {
                                         )}
                                         <tr className={styles.closingRow}>
                                             <td colSpan="6">Closing Balance</td>
-                                            <td className={styles.colAmount} data-label="Balance">{data.length > 0 ? (data[data.length - 1].balance || 0).toFixed(2) : (openingBalance || 0).toFixed(2)}</td>
+                                            <td
+                                                className={`${styles.colAmount} ${data.length > 0 ? (data[data.length - 1].balance > 0 ? styles.textValDebit : styles.textValCredit) : (openingBalance > 0 ? styles.textValDebit : styles.textValCredit)}`}
+                                                data-label="Balance"
+                                            >
+                                                {data.length > 0 ? (data[data.length - 1].balance || 0).toFixed(2) : (openingBalance || 0).toFixed(2)}
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -464,5 +467,14 @@ export default function ReportsPage() {
                 />
             )}
         </div>
+    );
+}
+
+// MAIN PAGE COMPONENT
+export default function ReportsPage() {
+    return (
+        <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading Report...</div>}>
+            <ReportsContent />
+        </Suspense>
     );
 }

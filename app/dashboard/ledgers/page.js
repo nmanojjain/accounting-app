@@ -5,7 +5,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
-import { deleteLedger, createLedger, updateLedger, getAccessibleCompanies } from '@/app/actions';
+import { deleteLedger, createLedger, updateLedger, getAccessibleCompanies, getLedgers } from '@/app/actions';
 import styles from './page.module.css';
 
 export default function LedgersPage() {
@@ -20,6 +20,7 @@ export default function LedgersPage() {
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
     const [editingId, setEditingId] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         fetchUserRole();
@@ -119,12 +120,20 @@ export default function LedgersPage() {
     if (loading) return <div>Loading...</div>;
 
     const editingLedger = ledgers.find(l => l.id === editingId);
+    const filteredLedgers = ledgers.filter(ledger =>
+        ledger.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ledger.group_name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
-        <div>
-            <div className={`${styles.header} stack-on-mobile`}>
-                <h1 className={styles.title}>Ledger's List</h1>
-                <div className={`${styles.controls} stack-on-mobile`}>
+        <div className={styles.pageContainer}>
+            <div className={styles.header}>
+                <div className={styles.titleSection}>
+                    <h1 className={styles.title}>Ledger's List</h1>
+                    <p className={styles.subtitle}>{ledgers.length} total ledgers</p>
+                </div>
+
+                <div className={styles.headerActions}>
                     {!(params?.companyId || searchParams.get('companyId')) && (
                         <select
                             value={selectedCompany}
@@ -134,14 +143,29 @@ export default function LedgersPage() {
                             {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                     )}
-                    {selectedCompany && (
-                        <Button onClick={() => router.push(`/dashboard/c/${selectedCompany}`)} variant="secondary">
-                            ← Exit to Workspace
+                    <div className={styles.buttonGroup}>
+                        {selectedCompany && (
+                            <Button onClick={() => router.push(`/dashboard/c/${selectedCompany}`)} variant="secondary">
+                                ← Back
+                            </Button>
+                        )}
+                        <Button onClick={() => { setShowForm(!showForm); setEditingId(null); }} className={styles.newBtn}>
+                            {showForm ? 'Cancel' : '+ New Ledger'}
                         </Button>
-                    )}
-                    <Button onClick={() => { setShowForm(!showForm); setEditingId(null); }}>
-                        {showForm ? 'Cancel' : 'New Ledger'}
-                    </Button>
+                    </div>
+                </div>
+            </div>
+
+            <div className={styles.searchBar}>
+                <div className={styles.searchInputWrapper}>
+                    <span className={styles.searchIcon}>🔍</span>
+                    <input
+                        type="text"
+                        placeholder="Search by name or group..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className={styles.searchInput}
+                    />
                 </div>
             </div>
 
@@ -200,8 +224,14 @@ export default function LedgersPage() {
                                 {operators.map(op => <option key={op.id} value={op.id}>{op.email}</option>)}
                             </select>
                         </div>
-                        {!editingId && (
-                            <Input name="opening_balance" label="Opening Balance" type="number" placeholder="0.00" />
+                        {(!editingId || userRole === 'admin') && (
+                            <Input
+                                name="opening_balance"
+                                label="Opening Balance"
+                                type="number"
+                                placeholder="0.00"
+                                defaultValue={editingLedger?.opening_balance}
+                            />
                         )}
                         <div style={{ display: 'flex', gap: '1rem' }}>
                             <Button type="submit">{editingId ? 'Update' : 'Create'}</Button>
@@ -212,8 +242,12 @@ export default function LedgersPage() {
             )}
 
             <div className={styles.list}>
-                {ledgers.length === 0 ? (
-                    <p>No ledgers found for this company.</p>
+                {filteredLedgers.length === 0 ? (
+                    <div className={styles.emptyState}>
+                        <div className={styles.emptyIcon}>📂</div>
+                        <p>{searchTerm ? 'No matching ledgers found.' : 'No ledgers found for this company.'}</p>
+                        {!searchTerm && <Button onClick={() => setShowForm(true)}>Create First Ledger</Button>}
+                    </div>
                 ) : (
                     <table className={styles.table}>
                         <thead>
@@ -221,21 +255,25 @@ export default function LedgersPage() {
                                 <th>Name</th>
                                 <th>Group</th>
                                 <th>Operator</th>
-                                <th>Balance</th>
-                                {userRole === 'admin' && <th>Actions</th>}
+                                <th align="right">Balance</th>
+                                {userRole === 'admin' && <th align="center">Actions</th>}
                             </tr>
                         </thead>
                         <tbody>
-                            {ledgers.map(ledger => (
+                            {filteredLedgers.map(ledger => (
                                 <tr key={ledger.id}>
-                                    <td data-label="Name">{ledger.name}</td>
-                                    <td data-label="Group">{ledger.group_name}</td>
-                                    <td data-label="Operator">{ledger.assigned_operator_id ? 'Yes' : '-'}</td>
-                                    <td data-label="Balance">{ledger.current_balance}</td>
+                                    <td data-label="Name" className={styles.ledgerName}>{ledger.name}</td>
+                                    <td data-label="Group"><span className={styles.groupBadge}>{ledger.group_name}</span></td>
+                                    <td data-label="Operator">{ledger.assigned_operator_id ? '✅ Assigned' : '-'}</td>
+                                    <td data-label="Balance" align="right" className={styles.balanceText}>
+                                        ₹ {Number(ledger.current_balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    </td>
                                     {userRole === 'admin' && (
-                                        <td data-label="Actions">
-                                            <button onClick={() => handleEdit(ledger)} className={styles.editBtn}>Edit</button>
-                                            <button onClick={() => handleDelete(ledger.id)} className={styles.deleteBtn}>Delete</button>
+                                        <td data-label="Actions" align="center">
+                                            <div className={styles.actionCell}>
+                                                <button onClick={() => handleEdit(ledger)} className={styles.editBtn} title="Edit">✏️</button>
+                                                <button onClick={() => handleDelete(ledger.id)} className={styles.deleteBtn} title="Delete">🗑️</button>
+                                            </div>
                                         </td>
                                     )}
                                 </tr>

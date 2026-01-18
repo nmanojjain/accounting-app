@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { createVoucher, getAccessibleCompanies, getLedgers, createLedger, getNextVoucherNumber } from '@/app/actions';
+import LedgerSelector from '@/app/components/LedgerSelector';
 import styles from './page.module.css';
 
 function VouchersContent() {
@@ -243,22 +244,17 @@ function VouchersContent() {
                     <div className={styles.tallyRow}>
                         <div className={styles.tallyField}>
                             <label>Account :</label>
-                            <input
-                                list="header-ledgers"
+                            <LedgerSelector
+                                ledgers={getHeaderLedgers()}
                                 value={headerLedgerSearch}
-                                onChange={e => {
-                                    setHeaderLedgerSearch(e.target.value);
-                                    const match = getHeaderLedgers().find(l => l.name === e.target.value);
-                                    if (match) setHeaderLedgerId(match.id);
+                                onSelect={(ledger) => {
+                                    setHeaderLedgerSearch(ledger.name);
+                                    setHeaderLedgerId(ledger.id);
                                 }}
-                                className={styles.tallyInput}
                                 placeholder="Select Account..."
                                 autoFocus
                                 required
                             />
-                            <datalist id="header-ledgers">
-                                {getHeaderLedgers().map(l => <option key={l.id} value={l.name} />)}
-                            </datalist>
                         </div>
                     </div>
 
@@ -270,18 +266,17 @@ function VouchersContent() {
                         {rows.map((row, index) => (
                             <div key={index} className={styles.tallyEntryRow}>
                                 <div style={{ flex: 3 }}>
-                                    <input
-                                        list={`row-ledgers-${index}`}
+                                    <LedgerSelector
+                                        ledgers={getRowLedgers()}
                                         value={row.search}
-                                        onChange={e => handleRowChange(index, 'search', e.target.value)}
-                                        className={styles.tallyInput}
+                                        onSelect={(ledger) => {
+                                            const newRows = [...rows];
+                                            newRows[index].search = ledger.name;
+                                            newRows[index].ledger_id = ledger.id;
+                                            setRows(newRows);
+                                        }}
                                         placeholder="Particulars"
-                                        style={{ width: '100%' }}
-                                        required
                                     />
-                                    <datalist id={`row-ledgers-${index}`}>
-                                        {getRowLedgers().map(l => <option key={l.id} value={l.name} />)}
-                                    </datalist>
                                 </div>
                                 <input
                                     type="number"
